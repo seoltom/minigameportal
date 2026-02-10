@@ -156,9 +156,9 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
         </div>
 
         <!-- 완료/예정 통계 -->
-        <div style="display: flex; gap: 15px; justify-content: center; margin-bottom: 25px;">
-            <span style="padding: 8px 16px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border-radius: 20px; font-size: 13px; font-weight: 600;">✅ 완료: <?= $completedCount ?></span>
-            <span style="padding: 8px 16px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border-radius: 20px; font-size: 13px; font-weight: 600;">🔜 개발예정: <?= $upcomingCount ?></span>
+        <div style="display: flex; gap: 12px; justify-content: center; margin-bottom: 20px;">
+            <span style="padding: 6px 14px; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; border-radius: 20px; font-size: 12px; font-weight: 600;">✅ 완료: <?= $completedCount ?></span>
+            <span style="padding: 6px 14px; background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; border-radius: 20px; font-size: 12px; font-weight: 600;">🔜 개발예정: <?= $upcomingCount ?></span>
         </div>
 
         <!-- 게임 그리드 -->
