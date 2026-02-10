@@ -1,32 +1,14 @@
 /**
- * Mahjong Connect 게임 로직 - 모바일 최적화
+ * Mahjong Connect 게임 로직 - 모바일 최적화 v2
  */
 
-// 타일 이모지 (쌍으로 사용)
-const TILES = [
-    '🀄', '🀅', '🀆', '🀇', '🀈', '🀉', '🀊', '🀋',
-    '🀌', '🀍', '🀎', '🀏', '🀐', '🀑', '🀒', '🀓',
-    '🎋', '🎎', '🎏', '🎐', '🎑', '🎒', '🎓', '🌸',
-    '🌺', '🌻', '🌼', '🌽', '🌾', '🌿', '🍀', '🍁'
-];
+// 타일 이모지
+const TILES = ['🀄', '🀅', '🀆', '🀇', '🀈', '🀉', '🀊', '🀋', '🀌', '🀍', '🀎', '🀏', '🀐', '🀑', '🀒', '🀓', '🎋', '🎎', '🎏', '🎐', '🎑', '🎒', '🎓', '🌸', '🌺', '🌻', '🌼', '🌽', '🌾', '🌿', '🍀', '🍁'];
 
 // 레벨별 설정
-const LEVELS = {
-    easy: { rows: 4, cols: 6, time: 180 },
-    normal: { rows: 6, cols: 8, time: 300 },
-    hard: { rows: 8, cols: 10, time: 480 }
-};
+const LEVELS = { easy: { rows: 4, cols: 6, time: 180 }, normal: { rows: 6, cols: 8, time: 300 }, hard: { rows: 8, cols: 10, time: 480 } };
 
-let board = [];
-let rows = 6;
-let cols = 8;
-let selectedTile = null;
-let score = 0;
-let pairsLeft = 0;
-let timeLeft = 300;
-let timerInterval = null;
-let gameOver = false;
-let gameWon = false;
+let board = [], rows = 6, cols = 8, selectedTile = null, score = 0, pairsLeft = 0, timeLeft = 300, timerInterval = null, gameOver = false, gameWon = false;
 
 // 게임 초기화
 function initGame() {
@@ -36,8 +18,7 @@ function initGame() {
     cols = config.cols;
     timeLeft = config.time;
     
-    const totalTiles = rows * cols;
-    const pairCount = totalTiles / 2;
+    const totalTiles = rows * cols, pairCount = totalTiles / 2;
     pairsLeft = pairCount;
     
     const selectedTiles = [];
@@ -46,7 +27,7 @@ function initGame() {
         selectedTiles.push(tile, tile);
     }
     
-    // Fisher-Yates 셔플
+    // 셔플
     for (let i = selectedTiles.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [selectedTiles[i], selectedTiles[j]] = [selectedTiles[j], selectedTiles[i]];
@@ -69,20 +50,27 @@ function initGame() {
     renderBoard();
     updateStats();
     startTimer();
+    
+    // 헤더 다시 보이기
+    showHeader();
 }
 
 // 보드 렌더링
 function renderBoard() {
-    const gameBoard = document.getElementById('game-board');
-    gameBoard.innerHTML = '';
+    const container = document.getElementById('game-board');
+    container.innerHTML = '';
     
-    // 화면 너비에 따라 타일 크기 계산
-    const boardWidth = Math.min(window.innerWidth - 40, 500);
-    const tileSize = Math.floor((boardWidth - (cols - 1) * 3) / cols);
-    const clampedSize = Math.max(32, Math.min(tileSize, 50));
+    // 가용 공간 계산
+    const containerWidth = container.parentElement.clientWidth - 20;
+    const containerHeight = container.parentElement.clientHeight - 20;
     
-    gameBoard.style.gridTemplateColumns = `repeat(${cols}, ${clampedSize}px)`;
-    gameBoard.style.gap = '3px';
+    // 타일 크기 계산 (정사각형)
+    const maxTileWidth = Math.floor(containerWidth / cols) - 2;
+    const maxTileHeight = Math.floor(containerHeight / rows) - 2;
+    const tileSize = Math.max(28, Math.min(maxTileWidth, maxTileHeight, 48));
+    
+    container.style.gridTemplateColumns = `repeat(${cols}, ${tileSize}px)`;
+    container.style.gap = '2px';
     
     for (let i = 1; i <= rows; i++) {
         for (let j = 1; j <= cols; j++) {
@@ -91,35 +79,25 @@ function renderBoard() {
             tile.dataset.row = i;
             tile.dataset.col = j;
             tile.textContent = board[i][j];
-            tile.style.height = `${Math.floor(clampedSize * 1.15)}px`;
-            tile.style.fontSize = `${Math.floor(clampedSize * 0.5)}px`;
+            tile.style.width = `${tileSize}px`;
+            tile.style.height = `${Math.floor(tileSize * 1.2)}px`;
+            tile.style.fontSize = `${Math.floor(tileSize * 0.5)}px`;
             
-            if (board[i][j] === 0) {
-                tile.classList.add('matched');
-            }
+            if (board[i][j] === 0) tile.classList.add('matched');
             
-            // 터치 이벤트
-            tile.addEventListener('click', (e) => {
-                e.preventDefault();
-                handleTileClick(i, j);
-            });
+            tile.addEventListener('click', (e) => { e.preventDefault(); handleTileClick(i, j); });
+            tile.addEventListener('touchend', (e) => { e.preventDefault(); handleTileClick(i, j); });
             
-            // 더블탭 방지
-            tile.addEventListener('touchend', (e) => {
-                e.preventDefault();
-                handleTileClick(i, j);
-            });
-            
-            gameBoard.appendChild(tile);
+            container.appendChild(tile);
         }
     }
 }
 
-// 타일 클릭 처리
+// 타일 클릭
 function handleTileClick(row, col) {
     if (gameOver || gameWon || board[row][col] === 0) return;
     
-    const clicked = { row, col, value: board[row][j] };
+    const clicked = { row, col, value: board[row][col] };
     
     if (!selectedTile) {
         selectedTile = clicked;
@@ -139,20 +117,17 @@ function handleTileClick(row, col) {
         if (path) {
             score += 100;
             pairsLeft--;
-            
             board[selectedTile.row][selectedTile.col] = 0;
             board[row][col] = 0;
             
-            // 진동 피드백 (모바일)
-            if (navigator.vibrate) {
-                navigator.vibrate(50);
-            }
+            // 진동
+            if (navigator.vibrate) navigator.vibrate(30);
             
             setTimeout(() => {
                 renderBoard();
                 updateStats();
                 checkWin();
-            }, 200);
+            }, 150);
             
             selectedTile = null;
         } else {
@@ -167,72 +142,43 @@ function handleTileClick(row, col) {
     }
 }
 
-// 타일 하이라이트
+// 하이라이트
 function highlightTile(row, col, selected) {
     const tile = document.querySelector(`.tile[data-row="${row}"][data-col="${col}"]`);
-    if (tile) {
-        if (selected) {
-            tile.classList.add('selected');
-        } else {
-            tile.classList.remove('selected');
-        }
-    }
+    if (tile) tile.classList.toggle('selected', selected);
 }
 
-// 경로 찾기 (BFS)
+// BFS 경로 찾기
 function findPath(r1, c1, r2, c2) {
     const directions = [[-1, 0], [1, 0], [0, -1], [0, 1]];
-    
-    const queue = [];
-    const visited = new Set();
-    const parent = new Map();
-    
-    queue.push({ row: r1, col: c1, turns: 0, path: [] });
-    visited.add(`${r1},${c1}`);
+    const queue = [{ row: r1, col: c1, path: [] }];
+    const visited = new Set([`${r1},${c1}`]);
     
     while (queue.length > 0) {
         const current = queue.shift();
         
-        if (current.row === r2 && current.col === c2) {
-            return current.path;
-        }
+        if (current.row === r2 && current.col === c2) return current.path;
         
-        for (let i = 0; i < directions.length; i++) {
-            const [dr, dc] = directions[i];
-            let newRow = current.row + dr;
-            let newCol = current.col + dc;
+        for (const [dr, dc] of directions) {
+            const nr = current.row + dr, nc = current.col + dc;
+            if (nr < 0 || nr > rows + 1 || nc < 0 || nc > cols + 1) continue;
+            if (visited.has(`${nr},${nc}`)) continue;
+            if (board[nr][nc] !== 0 && !(nr === r2 && nc === c2)) continue;
             
-            if (newRow < 0 || newRow > rows + 1 || newCol < 0 || newCol > cols + 1) {
-                continue;
-            }
-            
-            const key = `${newRow},${newCol}`;
-            if (visited.has(key)) {
-                continue;
-            }
-            
-            if (board[newRow][newCol] === 0 || (newRow === r2 && newCol === c2)) {
-                visited.add(key);
-                queue.push({
-                    row: newRow,
-                    col: newCol,
-                    path: [...current.path, { row: newRow, col: newCol }]
-                });
-            }
+            visited.add(`${nr},${nc}`);
+            queue.push({ row: nr, col: nc, path: [...current.path, { row: nr, col: nc }] });
         }
     }
-    
     return null;
 }
 
-// 힌트 표시
+// 힌트
 function showHint() {
     if (gameOver || gameWon) return;
     
     for (let i = 1; i <= rows; i++) {
         for (let j = 1; j <= cols; j++) {
             if (board[i][j] === 0) continue;
-            
             for (let ii = 1; ii <= rows; ii++) {
                 for (let jj = 1; jj <= cols; jj++) {
                     if (i === ii && j === jj) continue;
@@ -240,22 +186,15 @@ function showHint() {
                     if (board[i][j] !== board[ii][jj]) continue;
                     
                     if (findPath(i, j, ii, jj)) {
-                        const tile1 = document.querySelector(`.tile[data-row="${i}"][data-col="${j}"]`);
-                        const tile2 = document.querySelector(`.tile[data-row="${ii}"][data-col="${jj}"]`);
-                        
-                        if (tile1) tile1.classList.add('hint');
-                        if (tile2) tile2.classList.add('hint');
-                        
-                        // 진동 피드백
-                        if (navigator.vibrate) {
-                            navigator.vibrate(30);
-                        }
-                        
+                        const t1 = document.querySelector(`.tile[data-row="${i}"][data-col="${j}"]`);
+                        const t2 = document.querySelector(`.tile[data-row="${ii}"][data-col="${jj}"]`);
+                        if (t1) t1.classList.add('hint');
+                        if (t2) t2.classList.add('hint');
+                        if (navigator.vibrate) navigator.vibrate(20);
                         setTimeout(() => {
-                            if (tile1) tile1.classList.remove('hint');
-                            if (tile2) tile2.classList.remove('hint');
-                        }, 1000);
-                        
+                            if (t1) t1.classList.remove('hint');
+                            if (t2) t2.classList.remove('hint');
+                        }, 800);
                         return;
                     }
                 }
@@ -264,28 +203,19 @@ function showHint() {
     }
 }
 
-// 게임 상태 확인
+// 게임 상태
 function checkWin() {
     if (pairsLeft === 0) {
         gameWon = true;
         stopTimer();
         score += timeLeft * 10;
-        
-        // 승리 진동
-        if (navigator.vibrate) {
-            navigator.vibrate([100, 50, 100]);
-        }
-        
-        showMessage(`🎉 클리어! 점수: ${score}`, 'win');
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        showMessage(`🎉 클리어!<br>점수: ${score}`);
     } else if (timeLeft <= 0) {
         gameOver = true;
         stopTimer();
-        
-        if (navigator.vibrate) {
-            navigator.vibrate(200);
-        }
-        
-        showMessage('😢 시간 초과!', 'over');
+        if (navigator.vibrate) navigator.vibrate(200);
+        showMessage('😢 시간 초과!');
     }
 }
 
@@ -306,31 +236,54 @@ function stopTimer() {
     }
 }
 
-// 통계 업데이트
+// 통계
 function updateStats() {
     document.getElementById('score').textContent = score;
-    
-    const minutes = Math.floor(timeLeft / 60);
-    const seconds = timeLeft % 60;
-    document.getElementById('time').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
+    document.getElementById('time').textContent = `${m}:${s.toString().padStart(2, '0')}`;
     document.getElementById('pairs').textContent = pairsLeft;
 }
 
 // 메시지
-function showMessage(text, type) {
-    const msg = document.getElementById('game-message');
-    msg.textContent = text;
-    msg.className = 'game-message ' + type;
+function showMessage(text) {
+    document.getElementById('messageText').innerHTML = text;
+    document.getElementById('gameMessage').classList.add('show');
 }
 
 function hideMessage() {
-    const msg = document.getElementById('game-message');
-    msg.style.display = 'none';
+    document.getElementById('gameMessage').classList.remove('show');
 }
 
-// 화면 크기 변경 시 다시 렌더링
+// 헤더 토글
+function toggleHeader() {
+    const header = document.getElementById('headerSection');
+    const btn = document.getElementById('toggleBtn');
+    
+    if (header.classList.contains('hidden')) {
+        showHeader();
+    } else {
+        hideHeader();
+    }
+}
+
+function hideHeader() {
+    document.getElementById('headerSection').classList.add('hidden');
+    document.getElementById('toggleBtn').classList.add('show');
+    document.getElementById('toggleBtn').textContent = '⬇️ 메뉴 보기';
+    setTimeout(renderBoard, 300);
+}
+
+function showHeader() {
+    document.getElementById('headerSection').classList.remove('hidden');
+    document.getElementById('toggleBtn').classList.remove('show');
+    setTimeout(renderBoard, 300);
+}
+
+// 화면 크기 변경
+let resizeTimeout;
 window.addEventListener('resize', () => {
-    renderBoard();
+    clearTimeout(resizeTimeout);
+    resizeTimeout = setTimeout(renderBoard, 100);
 });
 
 // 게임 시작

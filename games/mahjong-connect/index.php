@@ -1,6 +1,6 @@
 <?php
 /**
- * 마작 연결 게임 페이지 - 모바일 최적화
+ * 마작 연결 게임 페이지 - 모바일 최적화 v2
  */
 require_once '../../config.php';
 ?>
@@ -13,100 +13,46 @@ require_once '../../config.php';
     <link rel="stylesheet" href="../../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .game-container {
-            max-width: 100%;
-            margin: 0 auto;
+        /* 전체 컨테이너 - 스크롤 방지 */
+        html, body {
+            overflow: hidden;
+            height: 100%;
+        }
+        
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        /* 헤더 - 접을 수 있게 */
+        .game-header-section {
+            flex-shrink: 0;
+            transition: transform 0.3s ease;
+        }
+        
+        .game-header-section.hidden {
+            transform: translateY(-100%);
+            position: absolute;
+            width: 100%;
+        }
+        
+        /* 게임 영역 - 남은 공간 모두 사용 */
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow: hidden;
             padding: 10px;
         }
         
-        .game-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        
-        .game-title {
-            font-size: 24px;
-            font-weight: bold;
-            color: #776e65;
-        }
-        
-        .score-container {
-            display: flex;
-            gap: 8px;
-        }
-        
-        .score-box {
-            background: #bbada0;
-            color: #fff;
-            padding: 8px 12px;
-            border-radius: 6px;
-            text-align: center;
-            min-width: 60px;
-        }
-        
-        .score-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            opacity: 0.8;
-        }
-        
-        .score-value {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        
-        .game-controls {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        
-        .level-select {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .game-board-container {
             flex: 1;
-        }
-        
-        .level-select label {
-            font-size: 14px;
-            white-space: nowrap;
-        }
-        
-        .level-select select {
-            flex: 1;
-            padding: 10px;
-            border-radius: 6px;
-            border: 2px solid #bbada0;
-            font-size: 14px;
-            background: #fff;
-            cursor: pointer;
-        }
-        
-        .btn {
-            padding: 10px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            white-space: nowrap;
-        }
-        
-        .btn-primary {
-            background: #8f7a66;
-            color: #f9f6f2;
-        }
-        
-        .btn-primary:active {
-            transform: scale(0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
         }
         
         #game-board {
@@ -114,21 +60,16 @@ require_once '../../config.php';
             border-radius: 8px;
             padding: 8px;
             display: grid;
-            gap: 3px;
-            margin-bottom: 15px;
-            justify-content: center;
-            overflow-x: auto;
+            gap: 2px;
         }
         
         .tile {
-            min-width: 40px;
-            height: 45px;
             background: #c9b99a;
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
+            font-size: 18px;
             cursor: pointer;
             transition: all 0.1s;
             user-select: none;
@@ -136,11 +77,11 @@ require_once '../../config.php';
         }
         
         .tile:active {
-            transform: scale(0.95);
+            transform: scale(0.92);
         }
         
         .tile.selected {
-            border: 3px solid #f59563;
+            border: 2px solid #f59563;
             background: #f2b179;
         }
         
@@ -156,79 +97,68 @@ require_once '../../config.php';
         
         @keyframes pulse {
             0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.08); }
         }
         
-        .game-message {
-            text-align: center;
-            padding: 15px;
-            border-radius: 6px;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 15px;
+        /* 푸터 - 최소화 */
+        footer {
+            flex-shrink: 0;
+            padding: 5px 20px;
+            font-size: 11px;
+            margin-top: auto;
+        }
+        
+        /* 게임 오버레이 - 헤더 토글 버튼 */
+        .toggle-header-btn {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1000;
+            background: rgba(255,255,255,0.9);
+            border: none;
+            border-radius: 20px;
+            padding: 8px 12px;
+            font-size: 12px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             display: none;
         }
         
-        .game-message.win {
-            background: #edc22e;
-            color: #f9f6f2;
+        .toggle-header-btn.show {
             display: block;
         }
         
-        .game-message.over {
-            background: #776e65;
-            color: #f9f6f2;
+        /* 메시지 오버레이 */
+        .game-message {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.9);
+            color: #fff;
+            padding: 30px 40px;
+            border-radius: 16px;
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            z-index: 2000;
+            display: none;
+        }
+        
+        .game-message.show {
             display: block;
         }
         
-        .instructions {
-            background: #eee4da;
-            padding: 12px;
-            border-radius: 6px;
-            color: #776e65;
-            font-size: 13px;
-            line-height: 1.6;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-        
-        .instructions p {
-            margin-bottom: 5px;
-        }
-        
-        /* 모바일 최적화 */
-        @media (max-width: 480px) {
-            .game-title {
-                font-size: 20px;
-            }
-            
-            .score-box {
-                padding: 6px 10px;
-                min-width: 50px;
-            }
-            
-            .score-value {
-                font-size: 16px;
-            }
-            
-            .tile {
-                min-width: 32px;
-                height: 38px;
-                font-size: 18px;
-            }
-            
-            .btn {
-                padding: 8px 12px;
-                font-size: 13px;
-            }
+        .game-message button {
+            margin-top: 15px;
+            padding: 10px 20px;
+            font-size: 16px;
         }
     </style>
 </head>
 <body>
-    <header>
+    <!-- 헤더 -->
+    <header class="game-header-section" id="headerSection">
         <div class="header-content">
             <a href="../../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
             <nav>
@@ -238,55 +168,57 @@ require_once '../../config.php';
         </div>
     </header>
 
-    <main class="container">
-        <div class="game-container">
-            <div class="game-header">
-                <h1 class="game-title">🀄 Mahjong Connect</h1>
-                <div class="score-container">
-                    <div class="score-box">
-                        <div class="score-label">Score</div>
-                        <div class="score-value" id="score">0</div>
-                    </div>
-                    <div class="score-box">
-                        <div class="score-label">Time</div>
-                        <div class="score-value" id="time">0:00</div>
-                    </div>
-                    <div class="score-box">
-                        <div class="score-label">남음</div>
-                        <div class="score-value" id="pairs">0</div>
-                    </div>
+    <!-- 게임 영역 -->
+    <main class="game-area">
+        <!-- 점수판 -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #fff; border-radius: 8px; margin-bottom: 10px;">
+            <div style="display: flex; gap: 15px;">
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; color: #888;">SCORE</div>
+                    <div style="font-size: 18px; font-weight: bold;" id="score">0</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; color: #888;">TIME</div>
+                    <div style="font-size: 18px; font-weight: bold;" id="time">0:00</div>
+                </div>
+                <div style="text-align: center;">
+                    <div style="font-size: 10px; color: #888;">남음</div>
+                    <div style="font-size: 18px; font-weight: bold;" id="pairs">0</div>
                 </div>
             </div>
             
-            <div class="game-controls">
-                <div class="level-select">
-                    <label>레벨:</label>
-                    <select id="level" onchange="initGame()">
-                        <option value="easy">쉬움</option>
-                        <option value="normal" selected>보통</option>
-                        <option value="hard">어려움</option>
-                    </select>
-                </div>
+            <div style="display: flex; gap: 8px;">
+                <select id="level" onchange="initGame()" style="padding: 8px; border-radius: 6px; border: 1px solid #ddd;">
+                    <option value="easy">쉬움</option>
+                    <option value="normal" selected>보통</option>
+                    <option value="hard">어려움</option>
+                </select>
             </div>
-            
-            <div class="game-controls">
-                <button class="btn btn-primary" style="flex:1" onclick="initGame()">🔄 새 게임</button>
-                <button class="btn btn-primary" style="flex:1" onclick="showHint()">💡 힌트</button>
-            </div>
-            
-            <div id="game-message" class="game-message"></div>
-            
+        </div>
+        
+        <!-- 컨트롤 버튼 -->
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+            <button onclick="initGame()" style="flex:1; padding: 12px; background: #8f7a66; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;">🔄 새 게임</button>
+            <button onclick="showHint()" style="flex:1; padding: 12px; background: #8f7a66; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;">💡 힌트</button>
+            <button onclick="toggleHeader()" style="padding: 12px 16px; background: #f5f5f5; border: none; border-radius: 8px; font-size: 14px;">⬆️</button>
+        </div>
+        
+        <!-- 게임 보드 -->
+        <div class="game-board-container">
             <div id="game-board"></div>
-            
-            <div class="instructions">
-                <h3>🎮 게임 방법</h3>
-                <p>1. 같은 타일 2개를 터치해서 선택하세요.</p>
-                <p>2. 경로가 2번 이하로 꺾여야 매칭됩니다.</p>
-                <p>3. 모든 타일을 제거하면 클리어!</p>
-            </div>
         </div>
     </main>
 
+    <!-- 헤더 토글 버튼 -->
+    <button class="toggle-header-btn" id="toggleBtn" onclick="toggleHeader()">⬇️ 메뉴 보기</button>
+
+    <!-- 게임 메시지 -->
+    <div class="game-message" id="gameMessage">
+        <div id="messageText"></div>
+        <button class="btn btn-primary" onclick="initGame()">다시하기</button>
+    </div>
+
+    <!-- 푸터 -->
     <footer>
         <p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p>
     </footer>
