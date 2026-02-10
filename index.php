@@ -1,0 +1,139 @@
+<?php
+/**
+ * 미니게임포털 - 메인 페이지
+ */
+
+require_once 'config.php';
+
+// 카테고리 필터
+$category = $_GET['category'] ?? 'all';
+$search = $_GET['search'] ?? '';
+
+// 게임 데이터 (실제로는 DB에서 가져옴)
+$games = [
+    // 퍼즐/전략 게임
+    ['id' => 1, 'name' => '2048', 'category' => 'puzzle', 'icon' => '🎮', 'desc' => '숫자 합치기 퍼즐 게임'],
+    ['id' => 2, 'name' => 'Tetris', 'category' => 'puzzle', 'icon' => '🧱', 'desc' => '고전 블록 쌓기 게임'],
+    ['id' => 3, 'name' => 'Sudoku', 'category' => 'puzzle', 'icon' => '🔢', 'desc' => '숫자 퍼즐 게임'],
+    ['id' => 4, 'name' => 'Mahjong Connect', 'category' => 'puzzle', 'icon' => '🀄', 'desc' => '마작 연결 퍼즐'],
+    ['id' => 5, 'name' => 'Bejeweled', 'category' => 'puzzle', 'icon' => '💎', 'desc' => '보석 매칭 게임'],
+    ['id' => 6, 'name' => 'Candy Crush', 'category' => 'puzzle', 'icon' => '🍬', 'desc' => '사탕 매칭 퍼즐'],
+    ['id' => 7, 'name' => 'Cut the Rope', 'category' => 'puzzle', 'icon' => '✂️', 'desc' => '밧줄 자르기 물리 퍼즐'],
+    ['id' => 8, 'name' => 'Angry Birds', 'category' => 'puzzle', 'icon' => '🐦', 'desc' => '새 튀기기 물리 게임'],
+    ['id' => 9, 'name' => 'Plant vs Zombies', 'category' => 'puzzle', 'icon' => '🌻', 'desc' => '식물 vs 좀비 방어'],
+    ['id' => 10, 'name' => 'Tower Defense', 'category' => 'puzzle', 'icon' => '🏰', 'desc' => '타워 디펜스 전략'],
+    // 레이싱/스포츠
+    ['id' => 11, 'name' => 'Turbo Racing', 'category' => 'racing', 'icon' => '🏎️', 'desc' => '3D 레이싱 게임'],
+    ['id' => 12, 'name' => 'Hill Climb Racing', 'category' => 'racing', 'icon' => '🏔️', 'desc' => '언덕 등반 레이싱'],
+    ['id' => 13, 'name' => 'Moto X3M', 'category' => 'racing', 'icon' => '🏍️', 'desc' => '오토바이 모터크로스'],
+    ['id' => 14, 'name' => 'Basket Random', 'category' => 'racing', 'icon' => '🏀', 'desc' => '농구 캐주얼 게임'],
+    ['id' => 15, 'name' => 'Soccer Physics', 'category' => 'racing', 'icon' => '⚽', 'desc' => '축구 캐주얼 게임'],
+    // 액션/어드벤처
+    ['id' => 16, 'name' => 'Super Mario Run', 'category' => 'action', 'icon' => '🍄', 'desc' => '마리오 런 게임'],
+    ['id' => 17, 'name' => 'Flappy Bird', 'category' => 'action', 'icon' => '🐤', 'desc' => '새 날개짓 게임'],
+    ['id' => 18, 'name' => 'Doodle Jump', 'category' => 'action', 'icon' => '📝', 'desc' => '점프 게임'],
+    ['id' => 19, 'name' => 'Temple Run', 'category' => 'action', 'icon' => '🏃', 'desc' => '템플 런 달리기'],
+    ['id' => 20, 'name' => 'Subway Surfers', 'category' => 'action', 'icon' => '🚇', 'desc' => '지하철 서핑'],
+    ['id' => 21, 'name' => 'Jetpack Joyride', 'category' => 'action', 'icon' => '🚀', 'desc' => '제트팩 달리기'],
+    ['id' => 22, 'name' => 'Crossy Road', 'category' => 'action', 'icon' => '🐔', 'desc' => '도로 건너기'],
+    // 카지노/보드
+    ['id' => 23, 'name' => 'Solitaire', 'category' => 'casino', 'icon' => '🃏', 'desc' => '솔리테어 카드 게임'],
+    ['id' => 24, 'name' => 'Spider Solitaire', 'category' => 'casino', 'icon' => '🕷️', 'desc' => '스파이더 솔리테어'],
+    ['id' => 25, 'name' => 'FreeCell', 'category' => 'casino', 'icon' => '🎴', 'desc' => '프리셀 카드 게임'],
+    ['id' => 26, 'name' => 'Chess', 'category' => 'casino', 'icon' => '♟️', 'desc' => '온라인 체스'],
+    ['id' => 27, 'name' => 'Checkers', 'category' => 'casino', 'icon' => '⚫', 'desc' => '체커 게임'],
+    ['id' => 28, 'name' => 'Backgammon', 'category' => 'casino', 'icon' => '🎲', 'desc' => '백개몬 게임'],
+    ['id' => 29, 'name' => 'Dominoes', 'category' => 'casino', 'icon' => '🀱', 'desc' => '도미노 게임'],
+    ['id' => 30, 'name' => 'Bingo', 'category' => 'casino', 'icon' => '🔴', 'desc' => '빙고 게임'],
+];
+
+// 필터링
+$filteredGames = array_filter($games, function($game) use ($category, $search) {
+    // 카테고리 필터
+    if ($category !== 'all' && $game['category'] !== $category) {
+        return false;
+    }
+    // 검색 필터
+    if ($search && stripos($game['name'], $search) === false && stripos($game['desc'], $search) === false) {
+        return false;
+    }
+    return true;
+});
+
+?>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?= SITE_NAME ?> - 다양한 미니게임을 즐기세요!</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header>
+        <div class="header-content">
+            <a href="index.php" class="logo">🎮 <?= SITE_NAME ?></a>
+            <nav>
+                <a href="index.php" class="active">미니게임</a>
+                <a href="blog/">블로그</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="container">
+        <!-- 검색 -->
+        <div class="search-container">
+            <form class="search-box" method="GET">
+                <input type="text" name="search" placeholder="검색어를 입력하세요..." value="<?= htmlspecialchars($search) ?>">
+                <button type="submit">🔍 검색</button>
+            </form>
+        </div>
+
+        <!-- 카테고리 필터 -->
+        <div style="display: flex; gap: 10px; justify-content: center; margin-bottom: 30px; flex-wrap: wrap;">
+            <a href="?category=all" style="padding: 8px 20px; border-radius: 20px; background: <?= $category === 'all' ? '#4f46e5' : '#fff' ?>; color: <?= $category === 'all' ? '#fff' : '#666' ?>; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                전체 (<?= count($games) ?>)
+            </a>
+            <?php foreach ($CATEGORIES as $key => $name): ?>
+                <?php 
+                    $count = count(array_filter($games, fn($g) => $g['category'] === $key));
+                ?>
+                <a href="?category=<?= $key ?>" style="padding: 8px 20px; border-radius: 20px; background: <?= $category === $key ? '#4f46e5' : '#fff' ?>; color: <?= $category === $key ? '#fff' : '#666' ?>; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <?= $name ?> (<?= $count ?>)
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <!-- 게임 그리드 -->
+        <div class="game-grid">
+            <?php foreach ($filteredGames as $game): ?>
+                <a href="games/<?= $game['category'] ?>/<?= strtolower(str_replace(' ', '-', $game['name'])) ?>/" class="game-card">
+                    <div class="game-icon"><?= $game['icon'] ?></div>
+                    <div class="game-info">
+                        <h3 class="game-title"><?= $game['name'] ?></h3>
+                        <p class="game-desc"><?= $game['desc'] ?></p>
+                        <div class="game-meta">
+                            <span class="game-category"><?= $CATEGORIES[$game['category']] ?></span>
+                        </div>
+                    </div>
+                </a>
+            <?php endforeach; ?>
+        </div>
+
+        <?php if (empty($filteredGames)): ?>
+            <div style="text-align: center; padding: 60px 20px; color: #888;">
+                <p style="font-size: 48px; margin-bottom: 20px;">🔍</p>
+                <p>검색 결과가 없습니다.</p>
+            </div>
+        <?php endif; ?>
+    </main>
+
+    <!-- 푸터 -->
+    <footer>
+        <p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a>에서 제작한 <?= SITE_NAME ?></p>
+    </footer>
+</body>
+</html>
