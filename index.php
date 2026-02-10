@@ -110,7 +110,7 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
         <!-- 게임 그리드 -->
         <div class="game-grid">
             <?php foreach ($filteredGames as $game): ?>
-                <a href="games/<?= $game['category'] ?>/<?= strtolower(str_replace(' ', '-', $game['name'])) ?>/" class="game-card">
+                <a href="games/<?= strtolower(str_replace(' ', '-', $game['name'])) ?>/" class="game-card">
                     <div class="game-icon"><?= $game['icon'] ?></div>
                     <div class="game-info">
                         <h3 class="game-title"><?= $game['name'] ?></h3>
