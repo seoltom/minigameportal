@@ -1,6 +1,6 @@
 <?php
 /**
- * 2048 게임 페이지
+ * 2048 게임 페이지 - 모바일 최적화
  */
 require_once '../config.php';
 ?>
@@ -8,76 +8,109 @@ require_once '../config.php';
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>2048 - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .game-container {
-            max-width: 500px;
-            margin: 0 auto;
-            padding: 20px;
+        html, body {
+            overflow: hidden;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: #faf8ef;
         }
         
-        .game-header {
+        body {
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
+            height: 100%;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .game-header-section {
+            flex-shrink: 0;
+            padding: 5px 15px;
+            display: flex;
             align-items: center;
-            margin-bottom: 20px;
+            justify-content: space-between;
         }
         
-        .game-title {
-            font-size: 48px;
-            font-weight: bold;
-            color: #776e65;
+        .game-header-section .logo {
+            font-size: 14px;
         }
         
-        .score-container {
+        .game-header-section nav a {
+            font-size: 12px;
+            margin-left: 10px;
+        }
+        
+        .game-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+            overflow: hidden;
+        }
+        
+        .score-bar {
             display: flex;
             gap: 10px;
+            margin-bottom: 10px;
+            width: 100%;
+            max-width: 320px;
         }
         
         .score-box {
+            flex: 1;
             background: #bbada0;
             color: #fff;
-            padding: 10px 20px;
+            padding: 8px;
             border-radius: 6px;
             text-align: center;
-            min-width: 80px;
         }
         
         .score-label {
-            font-size: 12px;
+            font-size: 10px;
             text-transform: uppercase;
             opacity: 0.8;
         }
         
         .score-value {
-            font-size: 24px;
+            font-size: 18px;
             font-weight: bold;
         }
         
         #game-board {
             background: #bbada0;
             border-radius: 8px;
-            padding: 15px;
+            padding: 8px;
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-            margin-bottom: 20px;
+            gap: 6px;
+            width: 100%;
+            max-width: 320px;
+            touch-action: manipulation;
         }
         
         .cell {
             background: rgba(238, 228, 218, 0.35);
-            border-radius: 6px;
+            border-radius: 4px;
             aspect-ratio: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 48px;
+            font-size: 28px;
             font-weight: bold;
             color: #776e65;
-            transition: all 0.15s ease;
+            transition: all 0.1s ease;
         }
         
         .cell[data-value="2"] { background: #eee4da; }
@@ -86,118 +119,147 @@ require_once '../config.php';
         .cell[data-value="16"] { background: #f59563; color: #f9f6f2; }
         .cell[data-value="32"] { background: #f67c5f; color: #f9f6f2; }
         .cell[data-value="64"] { background: #f65e3b; color: #f9f6f2; }
-        .cell[data-value="128"] { background: #edcf72; color: #f9f6f2; font-size: 36px; }
-        .cell[data-value="256"] { background: #edcc61; color: #f9f6f2; font-size: 36px; }
-        .cell[data-value="512"] { background: #edc850; color: #f9f6f2; font-size: 36px; }
-        .cell[data-value="1024"] { background: #edc53f; color: #f9f6f2; font-size: 28px; }
-        .cell[data-value="2048"] { background: #edc22e; color: #f9f6f2; font-size: 28px; }
+        .cell[data-value="128"] { background: #edcf72; color: #f9f6f2; font-size: 22px; }
+        .cell[data-value="256"] { background: #edcc61; color: #f9f6f2; font-size: 22px; }
+        .cell[data-value="512"] { background: #edc850; color: #f9f6f2; font-size: 22px; }
+        .cell[data-value="1024"] { background: #edc53f; color: #f9f6f2; font-size: 18px; }
+        .cell[data-value="2048"] { background: #edc22e; color: #f9f6f2; font-size: 18px; }
         
-        .game-controls {
+        .cell.new {
+            animation: pop 0.2s ease;
+        }
+        
+        @keyframes pop {
+            0% { transform: scale(0); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+        
+        .cell.merged {
+            animation: merge 0.15s ease;
+        }
+        
+        @keyframes merge {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+        
+        /* 모바일 컨트롤 - 한줄로 */
+        .controls {
             display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
+            gap: 6px;
+            margin-top: 12px;
+            width: 100%;
+            max-width: 320px;
+            justify-content: center;
+            touch-action: manipulation;
         }
         
-        .btn {
-            padding: 12px 24px;
+        .control-btn {
+            padding: 12px 16px;
             border: none;
-            border-radius: 6px;
-            font-size: 16px;
-            font-weight: 600;
+            border-radius: 8px;
+            font-size: 20px;
             cursor: pointer;
-            transition: all 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
         }
         
-        .btn-primary {
+        .control-btn:active {
+            transform: scale(0.92);
+        }
+        
+        .btn-move {
             background: #8f7a66;
-            color: #f9f6f2;
+            color: #fff;
         }
         
-        .btn-primary:hover {
-            background: #776e65;
+        .btn-reset {
+            background: #f65e3b;
+            color: #fff;
+            font-size: 14px;
         }
         
         .game-message {
-            text-align: center;
-            padding: 15px;
-            border-radius: 6px;
-            font-size: 24px;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(237, 194, 46, 0.95);
+            color: #f9f6f2;
+            padding: 25px 35px;
+            border-radius: 12px;
+            font-size: 20px;
             font-weight: bold;
-            margin-bottom: 20px;
+            text-align: center;
+            z-index: 2000;
             display: none;
         }
         
-        .game-message.win {
-            background: #edc22e;
-            color: #f9f6f2;
+        .game-message.show {
             display: block;
         }
         
         .game-message.over {
-            background: #776e65;
-            color: #f9f6f2;
-            display: block;
+            background: rgba(119, 110, 101, 0.95);
+        }
+        
+        footer {
+            flex-shrink: 0;
+            padding: 3px 20px;
+            font-size: 10px;
+            color: #999;
+        }
+        
+        footer a {
+            color: #999;
         }
         
         .instructions {
-            background: #eee4da;
-            padding: 15px;
-            border-radius: 6px;
-            color: #776e65;
-            font-size: 14px;
-            line-height: 1.8;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 10px;
+            display: none;
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <a href="../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
-            <nav>
-                <a href="../index.php">미니게임</a>
-                <a href="../blog/">블로그</a>
-            </nav>
-        </div>
+    <header class="game-header-section">
+        <a href="../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
+        <nav>
+            <a href="../index.php">게임</a>
+            <a href="../blog/">블로그</a>
+        </nav>
     </header>
 
-    <main class="container">
-        <div class="game-container">
-            <div class="game-header">
-                <h1 class="game-title">2048</h1>
-                <div class="score-container">
-                    <div class="score-box">
-                        <div class="score-label">Score</div>
-                        <div class="score-value" id="score">0</div>
-                    </div>
-                    <div class="score-box">
-                        <div class="score-label">Best</div>
-                        <div class="score-value" id="best-score">0</div>
-                    </div>
-                </div>
+    <main class="game-area">
+        <div class="score-bar">
+            <div class="score-box">
+                <div class="score-label">SCORE</div>
+                <div class="score-value" id="score">0</div>
             </div>
-            
-            <div class="game-controls">
-                <button class="btn btn-primary" onclick="initGame()">새 게임</button>
+            <div class="score-box">
+                <div class="score-label">BEST</div>
+                <div class="score-value" id="best-score">0</div>
             </div>
-            
-            <div id="game-message" class="game-message"></div>
-            
-            <div id="game-board"></div>
-            
-            <div class="instructions">
-                <h3>🎮 게임 방법</h3>
-                <p>화살표 키 (← ↑ → ↓) 또는 스와이프로 타일을 이동하세요.</p>
-                <p>같은 숫자의 타기가 만나면 합쳐집니다. 2048을 만들어 보세요!</p>
-            </div>
+        </div>
+        
+        <div id="game-board"></div>
+        
+        <div class="controls">
+            <button class="control-btn btn-reset" onclick="initGame()">🔄</button>
+            <button class="control-btn btn-move" onclick="move('up')">⬆️</button>
+            <button class="control-btn btn-move" onclick="move('down')">⬇️</button>
+            <button class="control-btn btn-move" onclick="move('left')">⬅️</button>
+            <button class="control-btn btn-move" onclick="move('right')">➡️</button>
         </div>
     </main>
 
+    <div class="game-message" id="gameMessage">
+        <div id="messageText"></div>
+        <button onclick="initGame()" style="margin-top:10px;padding:10px 20px;border:none;border-radius:6px;background:#fff;color:#776e65;font-weight:bold;">다시하기</button>
+    </div>
+
     <footer>
-        <p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a>에서 제작한 <?= SITE_NAME ?></p>
+        <p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p>
     </footer>
 
     <script src="game.js"></script>

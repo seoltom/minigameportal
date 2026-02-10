@@ -220,29 +220,36 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// 터치 이벤트 (스와이프)
+// 터치 이벤트 (스와이프) - 게임 보드에서만
 let touchStartX = 0;
 let touchStartY = 0;
+let gameBoard = null;
 
-document.addEventListener('touchstart', (e) => {
-    touchStartX = e.touches[0].clientX;
-    touchStartY = e.touches[0].clientY;
-});
+document.addEventListener('DOMContentLoaded', () => {
+    gameBoard = document.getElementById('game-board');
+    
+    gameBoard.addEventListener('touchstart', (e) => {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    });
 
-document.addEventListener('touchend', (e) => {
-    const touchEndX = e.changedTouches[0].clientX;
-    const touchEndY = e.changedTouches[0].clientY;
-    
-    const dx = touchEndX - touchStartX;
-    const dy = touchEndY - touchStartY;
-    
-    if (Math.abs(dx) > Math.abs(dy)) {
-        if (dx > 50) move('right');
-        else if (dx < -50) move('left');
-    } else {
-        if (dy > 50) move('down');
-        else if (dy < -50) move('up');
-    }
+    gameBoard.addEventListener('touchend', (e) => {
+        const touchEndX = e.changedTouches[0].clientX;
+        const touchEndY = e.changedTouches[0].clientY;
+        
+        const dx = touchEndX - touchStartX;
+        const dy = touchEndY - touchStartY;
+        
+        const minSwipe = 40;
+        
+        if (Math.abs(dx) > Math.abs(dy)) {
+            if (dx > minSwipe) move('right');
+            else if (dx < -minSwipe) move('left');
+        } else {
+            if (dy > minSwipe) move('down');
+            else if (dy < -minSwipe) move('up');
+        }
+    });
 });
 
 // 게임 시작
