@@ -12,7 +12,6 @@ require_once '../../config.php';
     <meta name="apple-mobile-web-app-capable" content="yes">
     <title>Bejeweled - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
     <style>
         html, body { overflow: hidden; height: 100%; }
         body { display: flex; flex-direction: column; height: 100%; touch-action: manipulation; user-select: none; }
