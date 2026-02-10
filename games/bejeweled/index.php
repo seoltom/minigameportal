@@ -8,7 +8,9 @@ require_once '../../config.php';
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Bejeweled - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -22,11 +24,37 @@ require_once '../../config.php';
             display: flex;
             flex-direction: column;
             height: 100%;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         .game-header-section {
             flex-shrink: 0;
-            transition: transform 0.3s ease;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .game-header-section .logo {
+            font-size: 16px;
+            font-weight: bold;
+            color: #776e65;
+        }
+        
+        .game-header-section nav {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .game-header-section nav a {
+            font-size: 13px;
+            color: #776e65;
+            text-decoration: none;
         }
         
         .game-header-section.hidden {
@@ -70,7 +98,6 @@ require_once '../../config.php';
             transition: all 0.15s;
             user-select: none;
             -webkit-tap-highlight-color: transparent;
-            box-shadow: inset 0 -3px 6px rgba(0,0,0,0.3), 0 2px 4px rgba(0,0,0,0.2);
         }
         
         .gem:active {
@@ -79,7 +106,7 @@ require_once '../../config.php';
         
         .gem.selected {
             transform: scale(1.1);
-            box-shadow: 0 0 15px rgba(255,255,255,0.8), inset 0 -3px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 0 15px rgba(255,255,255,0.8);
             z-index: 10;
         }
         
@@ -116,6 +143,12 @@ require_once '../../config.php';
             padding: 5px 20px;
             font-size: 11px;
             margin-top: auto;
+            color: #999;
+            text-align: center;
+        }
+        
+        footer a {
+            color: #999;
         }
         
         .toggle-header-btn {
@@ -129,7 +162,6 @@ require_once '../../config.php';
             padding: 8px 12px;
             font-size: 12px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             display: none;
         }
         
@@ -175,13 +207,11 @@ require_once '../../config.php';
 </head>
 <body>
     <header class="game-header-section" id="headerSection">
-        <div class="header-content">
-            <a href="../../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
-            <nav>
-                <a href="../../index.php">미니게임</a>
-                <a href="../../blog/">블로그</a>
-            </nav>
-        </div>
+        <a href="../../index.php" class="logo">🎮 Bejeweled</a>
+        <nav>
+            <a href="../../index.php">게임</a>
+            <a href="../../blog/">블로그</a>
+        </nav>
     </header>
 
     <main class="game-area">

@@ -8,7 +8,9 @@ require_once '../../config.php';
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Mario Run - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -24,12 +26,37 @@ require_once '../../config.php';
             flex-direction: column;
             height: 100%;
             touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
         .game-header-section {
             flex-shrink: 0;
-            transition: transform 0.3s ease;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
             background: rgba(0,0,0,0.3);
+        }
+        
+        .game-header-section .logo {
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .game-header-section nav {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .game-header-section nav a {
+            font-size: 13px;
+            color: #fff;
+            text-decoration: none;
         }
         
         .game-header-section.hidden {
@@ -56,7 +83,6 @@ require_once '../../config.php';
             overflow: hidden;
         }
         
-        /* 구름 */
         .cloud {
             position: absolute;
             font-size: 40px;
@@ -69,7 +95,6 @@ require_once '../../config.php';
             100% { transform: translateX(-100px); }
         }
         
-        /* 지면 */
         .ground {
             position: absolute;
             bottom: 0;
@@ -80,7 +105,6 @@ require_once '../../config.php';
             border-top: 4px solid #4a3728;
         }
         
-        /* 파이프 */
         .pipe {
             position: absolute;
             bottom: 25%;
@@ -102,14 +126,12 @@ require_once '../../config.php';
             border: 2px solid #1a6b1a;
         }
         
-        /* 버섯 */
         .mushroom {
             position: absolute;
             font-size: 35px;
             z-index: 10;
         }
         
-        /* 별 */
         .star {
             position: absolute;
             font-size: 30px;
@@ -122,7 +144,6 @@ require_once '../../config.php';
             50% { transform: rotateY(180deg); }
         }
         
-        /* 마리오 */
         #mario {
             position: absolute;
             font-size: 45px;
@@ -142,7 +163,6 @@ require_once '../../config.php';
             50% { transform: translateY(-20px) rotate(10deg); }
         }
         
-        /* 장애물 (고블린) */
         .goblin {
             position: absolute;
             bottom: 25%;
@@ -157,7 +177,6 @@ require_once '../../config.php';
             100% { transform: translateX(0); }
         }
         
-        /* 점수 표시 */
         .score-display {
             position: absolute;
             top: 10px;
@@ -184,7 +203,6 @@ require_once '../../config.php';
             z-index: 100;
         }
         
-        /* 게임 오버레이 */
         .game-message {
             position: fixed;
             top: 50%;
@@ -205,23 +223,13 @@ require_once '../../config.php';
             display: block;
         }
         
-        .game-over-title {
-            font-size: 28px;
-            margin-bottom: 15px;
-        }
-        
-        .final-score {
-            font-size: 24px;
-            color: #ffd700;
-            margin-bottom: 20px;
-        }
-        
         footer {
             flex-shrink: 0;
             padding: 5px 20px;
             font-size: 11px;
             background: rgba(0,0,0,0.3);
             color: #fff;
+            text-align: center;
         }
         
         footer a {
@@ -231,35 +239,28 @@ require_once '../../config.php';
 </head>
 <body>
     <header class="game-header-section" id="headerSection">
-        <div class="header-content">
-            <a href="../../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
-            <nav>
-                <a href="../../index.php">미니게임</a>
-                <a href="../../blog/">블로그</a>
-            </nav>
-        </div>
+        <a href="../../index.php" class="logo">🏃 Mario Run</a>
+        <nav>
+            <a href="../../index.php">게임</a>
+            <a href="../../blog/">블로그</a>
+        </nav>
     </header>
 
     <main class="game-area">
         <div id="game-canvas">
-            <!-- 구름 -->
             <div class="cloud" style="top: 10%; animation-delay: 0s;">☁️</div>
             <div class="cloud" style="top: 5%; animation-delay: 5s;">☁️</div>
             <div class="cloud" style="top: 15%; animation-delay: 10s;">☁️</div>
             
-            <!-- 지면 -->
             <div class="ground"></div>
             
-            <!-- 마리오 -->
             <div id="mario">🍄</div>
             
-            <!-- 점수 -->
             <div class="score-display">
                 <span>⭐ <span id="score">0</span></span>
                 <span style="margin-left: 15px;">🏃 <span id="distance">0</span>m</span>
             </div>
             
-            <!-- 컨트롤 힌트 -->
             <div class="controls-hint" id="controlsHint">👆 탭하여 점프!</div>
         </div>
     </main>

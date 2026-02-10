@@ -1,6 +1,6 @@
 <?php
 /**
- * 마작 연결 게임 페이지 - 모바일 최적화 v2
+ * 마작 연결 게임 페이지 - 모바일 최적화 v3
  */
 require_once '../../config.php';
 ?>
@@ -8,12 +8,13 @@ require_once '../../config.php';
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>Mahjong Connect - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* 전체 컨테이너 - 스크롤 방지 */
         html, body {
             overflow: hidden;
             height: 100%;
@@ -23,12 +24,37 @@ require_once '../../config.php';
             display: flex;
             flex-direction: column;
             height: 100%;
+            touch-action: manipulation;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
         }
         
-        /* 헤더 - 접을 수 있게 */
         .game-header-section {
             flex-shrink: 0;
-            transition: transform 0.3s ease;
+            padding: 8px 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .game-header-section .logo {
+            font-size: 16px;
+            font-weight: bold;
+            color: #776e65;
+        }
+        
+        .game-header-section nav {
+            display: flex;
+            gap: 15px;
+        }
+        
+        .game-header-section nav a {
+            font-size: 13px;
+            color: #776e65;
+            text-decoration: none;
         }
         
         .game-header-section.hidden {
@@ -37,7 +63,6 @@ require_once '../../config.php';
             width: 100%;
         }
         
-        /* 게임 영역 - 남은 공간 모두 사용 */
         .game-area {
             flex: 1;
             display: flex;
@@ -100,15 +125,19 @@ require_once '../../config.php';
             50% { transform: scale(1.08); }
         }
         
-        /* 푸터 - 최소화 */
         footer {
             flex-shrink: 0;
             padding: 5px 20px;
             font-size: 11px;
             margin-top: auto;
+            color: #999;
+            text-align: center;
         }
         
-        /* 게임 오버레이 - 헤더 토글 버튼 */
+        footer a {
+            color: #999;
+        }
+        
         .toggle-header-btn {
             position: fixed;
             top: 10px;
@@ -120,7 +149,6 @@ require_once '../../config.php';
             padding: 8px 12px;
             font-size: 12px;
             cursor: pointer;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
             display: none;
         }
         
@@ -128,7 +156,6 @@ require_once '../../config.php';
             display: block;
         }
         
-        /* 메시지 오버레이 */
         .game-message {
             position: fixed;
             top: 50%;
@@ -148,29 +175,18 @@ require_once '../../config.php';
         .game-message.show {
             display: block;
         }
-        
-        .game-message button {
-            margin-top: 15px;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
     </style>
 </head>
 <body>
-    <!-- 헤더 -->
     <header class="game-header-section" id="headerSection">
-        <div class="header-content">
-            <a href="../../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
-            <nav>
-                <a href="../../index.php">미니게임</a>
-                <a href="../../blog/">블로그</a>
-            </nav>
-        </div>
+        <a href="../../index.php" class="logo">🎮 Mahjong</a>
+        <nav>
+            <a href="../../index.php">게임</a>
+            <a href="../../blog/">블로그</a>
+        </nav>
     </header>
 
-    <!-- 게임 영역 -->
     <main class="game-area">
-        <!-- 점수판 -->
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #fff; border-radius: 8px; margin-bottom: 10px;">
             <div style="display: flex; gap: 15px;">
                 <div style="text-align: center;">
@@ -196,29 +212,24 @@ require_once '../../config.php';
             </div>
         </div>
         
-        <!-- 컨트롤 버튼 -->
         <div style="display: flex; gap: 8px; margin-bottom: 10px;">
             <button onclick="initGame()" style="flex:1; padding: 12px; background: #8f7a66; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;">🔄 새 게임</button>
             <button onclick="showHint()" style="flex:1; padding: 12px; background: #8f7a66; color: #fff; border: none; border-radius: 8px; font-size: 14px; font-weight: 600;">💡 힌트</button>
             <button onclick="toggleHeader()" style="padding: 12px 16px; background: #f5f5f5; border: none; border-radius: 8px; font-size: 14px;">⬆️</button>
         </div>
         
-        <!-- 게임 보드 -->
         <div class="game-board-container">
             <div id="game-board"></div>
         </div>
     </main>
 
-    <!-- 헤더 토글 버튼 -->
     <button class="toggle-header-btn" id="toggleBtn" onclick="toggleHeader()">⬇️ 메뉴 보기</button>
 
-    <!-- 게임 메시지 -->
     <div class="game-message" id="gameMessage">
         <div id="messageText"></div>
         <button class="btn btn-primary" onclick="initGame()">다시하기</button>
     </div>
 
-    <!-- 푸터 -->
     <footer>
         <p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p>
     </footer>

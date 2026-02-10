@@ -2,7 +2,7 @@
 /**
  * 2048 게임 페이지 - 모바일 최적화
  */
-require_once '../config.php';
+require_once '../../config.php';
 ?>
 <!DOCTYPE html>
 <html lang="ko">
@@ -35,19 +35,33 @@ require_once '../config.php';
         
         .game-header-section {
             flex-shrink: 0;
-            padding: 5px 15px;
+            padding: 8px 15px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-sizing: border-box;
         }
         
         .game-header-section .logo {
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #776e65;
+        }
+        
+        .game-header-section nav {
+            display: flex;
+            gap: 15px;
         }
         
         .game-header-section nav a {
-            font-size: 12px;
-            margin-left: 10px;
+            font-size: 13px;
+            color: #776e65;
+            text-decoration: none;
+        }
+        
+        .game-header-section nav a:hover {
+            text-decoration: underline;
         }
         
         .game-area {
@@ -145,7 +159,6 @@ require_once '../config.php';
             100% { transform: scale(1); }
         }
         
-        /* 모바일 컨트롤 - 한줄로 */
         .controls {
             display: flex;
             gap: 6px;
@@ -210,20 +223,17 @@ require_once '../config.php';
             padding: 3px 20px;
             font-size: 10px;
             color: #999;
+            text-align: center;
         }
         
         footer a {
             color: #999;
         }
-        
-        .instructions {
-            display: none;
-        }
     </style>
 </head>
 <body>
     <header class="game-header-section">
-        <a href="../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
+        <a href="../index.php" class="logo">🎮 2048</a>
         <nav>
             <a href="../index.php">게임</a>
             <a href="../blog/">블로그</a>
