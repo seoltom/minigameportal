@@ -81,23 +81,22 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
             position: relative;
         }
         
-        .game-card .status-badge {
-            position: absolute;
-            top: -5px;
-            right: -5px;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-size: 10px;
+        /* 게임 이름 옆 인라인 라벨 */
+        .status-badge-inline {
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-size: 11px;
             font-weight: 600;
-            z-index: 10;
+            margin-left: 8px;
+            vertical-align: middle;
         }
         
-        .game-card .status-badge.completed {
+        .status-badge-inline.completed {
             background: linear-gradient(135deg, #22c55e, #16a34a);
             color: #fff;
         }
         
-        .game-card .status-badge.upcoming {
+        .status-badge-inline.upcoming {
             background: linear-gradient(135deg, #f59e0b, #d97706);
             color: #fff;
         }
@@ -169,14 +168,17 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
                     $statusLabel = $game['status'] === 'completed' ? '완료' : '개발예정';
                     $statusClass = $game['status'];
                     $cardClass = $game['status'] === 'completed' ? 'completed-game' : 'upcoming-game';
+                    $href = $game['status'] === 'completed' ? 'games/' . strtolower(str_replace(' ', '-', str_replace('-', '', $game['name']))) . '/' : '#';
                 ?>
-                <a href="<?= $game['status'] === 'completed' ? 'games/' . strtolower(str_replace(' ', '-', $game['name'])) . '/' : '#' ?>" 
+                <a href="<?= $href ?>" 
                    class="game-card <?= $cardClass ?>" 
                    <?= $game['status'] === 'upcoming' ? 'onclick="return false;"' : '' ?>>
-                    <span class="status-badge <?= $statusClass ?>"><?= $statusLabel ?></span>
                     <div class="game-icon"><?= $game['icon'] ?></div>
                     <div class="game-info">
-                        <h3 class="game-title"><?= $game['name'] ?></h3>
+                        <h3 class="game-title">
+                            <?= $game['name'] ?>
+                            <span class="status-badge-inline <?= $statusClass ?>"><?= $statusLabel ?></span>
+                        </h3>
                         <p class="game-desc"><?= $game['desc'] ?></p>
                         <div class="game-meta">
                             <span class="game-category"><?= $CATEGORIES[$game['category']] ?></span>
