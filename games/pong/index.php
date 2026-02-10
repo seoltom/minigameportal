@@ -11,9 +11,10 @@ require_once '../../config.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <title>Pong - <?= SITE_NAME ?></title>
+    <title>퐁 - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
     <style>
+        header { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
         html, body {
             overflow: hidden;
             height: 100%;
@@ -174,7 +175,15 @@ require_once '../../config.php';
     </style>
 </head>
 <body>
-    <header class="game-header-section">
+    <header>
+    <div class="header-content">
+        <a href="../index.php" class="logo">🎮 <?= SITE_NAME</a>
+        <nav>
+            <a href="../index.php">미니게임</a>
+            <a href="../blog/">블로그</a>
+        </nav>
+    </div>
+</header>
         <a href="../../index.php" class="logo">🏓 Pong</a>
         <nav>
             <a href="../../index.php">게임</a>

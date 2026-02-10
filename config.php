@@ -7,7 +7,7 @@
 session_start();
 
 // 기본 설정
-define('SITE_NAME', '미니게임포털');
+define('SITE_NAME', '설탕포털');
 define('SITE_URL', 'http://localhost:8080');
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'minigame');

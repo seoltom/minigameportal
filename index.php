@@ -179,7 +179,7 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
                             <?= $game['name'] ?>
                             <span class="status-badge-inline <?= $statusClass ?>"><?= $statusLabel ?></span>
                         </h3>
-                        <p class="game-desc"><?= $game['desc'] ?></p>
+                        <p class="game-desc"><?= $game['name'] ?> - <?= $game['desc'] ?></p>
                         <div class="game-meta">
                             <span class="game-category"><?= $CATEGORIES[$game['category']] ?></span>
                         </div>
