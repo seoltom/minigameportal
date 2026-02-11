@@ -1,4 +1,5 @@
 /**
+// v=20260210 - cache bust
  * Solitaire 게임 로직 (Simplified Klondike)
  */
 

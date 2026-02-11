@@ -1,4 +1,5 @@
 /**
+// v=20260210 - cache bust
  * Mahjong Connect 게임 로직 - 모바일 최적화 v2
  */
 
@@ -67,7 +68,7 @@ function renderBoard() {
     // 타일 크기 계산 (정사각형)
     const maxTileWidth = Math.floor(containerWidth / cols) - 2;
     const maxTileHeight = Math.floor(containerHeight / rows) - 2;
-    const tileSize = Math.max(28, Math.min(maxTileWidth, maxTileHeight, 48));
+    const tileSize = Math.max(32, Math.min(maxTileWidth, maxTileHeight, 52));
     
     container.style.gridTemplateColumns = `repeat(${cols}, ${tileSize}px)`;
     container.style.gap = '2px';
@@ -81,7 +82,7 @@ function renderBoard() {
             tile.textContent = board[i][j];
             tile.style.width = `${tileSize}px`;
             tile.style.height = `${Math.floor(tileSize * 1.2)}px`;
-            tile.style.fontSize = `${Math.floor(tileSize * 0.5)}px`;
+            tile.style.fontSize = `${Math.floor(tileSize * 0.7)}px`;
             
             if (board[i][j] === 0) tile.classList.add('matched');
             

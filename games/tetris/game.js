@@ -1,11 +1,12 @@
 /**
+// v=20260210 - cache bust
  * Tetris 게임 로직
  */
 
 // 보드 설정
 const COLS = 10;
 const ROWS = 20;
-const CELL_SIZE = 28;
+const CELL_SIZE = 22;
 
 // 테트로미노 정의 (I, J, L, O, S, T, Z)
 const TETROMINOES = {
@@ -479,6 +480,20 @@ function showGameOver() {
 // 메시지
 function hideMessage() {
     document.getElementById('gameMessage').classList.remove('show');
+}
+
+// 헤더 토글
+function toggleHeader() {
+    const header = document.getElementById('headerSection');
+    const btn = document.getElementById('toggleBtn');
+    
+    if (header.classList.contains('hidden')) {
+        header.classList.remove('hidden');
+        btn.classList.remove('show');
+    } else {
+        header.classList.add('hidden');
+        btn.classList.add('show');
+    }
 }
 
 // 초기화 실행

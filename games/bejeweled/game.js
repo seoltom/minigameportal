@@ -1,4 +1,5 @@
 /**
+// v=20260210 - cache bust
  * 보석 매칭 게임 로직
  */
 
@@ -109,7 +110,7 @@ function renderBoard() {
             gem.addEventListener('click', (e) => { e.preventDefault(); handleGemClick(i, j); });
             gem.addEventListener('touchend', (e) => { e.preventDefault(); handleGemClick(i, j); });
             
-            container.appendChild(gap);
+            container.appendChild(gem);
         }
     }
 }

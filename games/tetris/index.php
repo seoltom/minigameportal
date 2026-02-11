@@ -8,7 +8,7 @@ require_once '../../config.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tetris - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
-    
+    <style>
         html, body { overflow: hidden; height: 100%; margin: 0; padding: 0; background: #1a1a2e; }
         body { display: flex; flex-direction: column; height: 100%; touch-action: manipulation; user-select: none; }
         header { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
@@ -48,19 +48,17 @@ require_once '../../config.php';
         footer { flex-shrink: 0; padding: 5px 20px; font-size: 10px; color: #666; text-align: center; }
         footer a { color: #666; }
     </style>
-<?php require_once ../header.php; ?>
-<?php require_once '../header.php'; ?>
 </head>
 <body>
-    
-        
-            <a href="../../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
+    <header>
+        <div class="header-content">
+            <a href="http://tomseol.pe.kr/" class="logo">🎮 <?= SITE_NAME ?></a>
             <nav>
-                <a href="../../index.php">게임</a>
-                <a href="../../blog/">블로그</a>
+                <a href="http://tomseol.pe.kr/">미니게임</a>
+                <a href="http://tomseol.pe.kr/blog/">블로그</a>
             </nav>
         </div>
-    
+    </header>
     <main class="game-area">
         <div class="game-container">
             <div id="game-board"></div>
