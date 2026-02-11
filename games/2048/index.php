@@ -13,7 +13,7 @@ require_once '../../config.php';
     <meta name="mobile-web-app-capable" content="yes">
     <title>2048 - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <?php require_once '../../header.php'; ?>
     <style>
         html, body {
             overflow: hidden;
