@@ -12,7 +12,7 @@ require_once '../../config.php';
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>2048 - <?= SITE_NAME ?></title>
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../../css/style.css">
     <?php require_once '../../header.php'; ?>
     <style>
         html, body {
