@@ -159,7 +159,24 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
                     $statusLabel = $game['status'] === 'completed' ? '완료' : '개발예정';
                     $statusClass = $game['status'];
                     $cardClass = $game['status'] === 'completed' ? 'completed-game' : 'upcoming-game';
-                    $href = $game['status'] === 'completed' ? 'games/' . strtolower(str_replace(' ', '-', str_replace('-', '', $game['name']))) . '/' : '#';
+                    
+                    // URL 매핑 (하이픈 유지)
+                    $urlMap = [
+                        '2048' => '2048',
+                        'Tetris' => 'tetris',
+                        'Mahjong Connect' => 'mahjong-connect',
+                        'Bejeweled' => 'bejeweled',
+                        'Minesweeper' => 'minesweeper',
+                        'Memory' => 'memory',
+                        'Brick Breaker' => 'brick-breaker',
+                        'Tic-Tac-Toe' => 'tic-tac-toe',
+                        'Mario Run' => 'mario-run',
+                        'Flappy Bird' => 'flappy-bird',
+                        'Snake' => 'snake',
+                        'Pong' => 'pong',
+                        'Solitaire' => 'solitaire',
+                    ];
+                    $href = isset($urlMap[$game['name']]) ? 'games/' . $urlMap[$game['name']] . '/' : '#';
                 ?>
                 <a href="<?= $href ?>" 
                    class="game-card <?= $cardClass ?>" 
