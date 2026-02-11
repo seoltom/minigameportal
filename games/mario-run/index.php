@@ -8,7 +8,7 @@ require_once '../../config.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mario Run - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
-    
+    <style>
         html, body { overflow: hidden; height: 100%; margin: 0; background: linear-gradient(87deg, #5BC0DE, #D6AE01); }
         body { display: flex; flex-direction: column; height: 100%; touch-action: manipulation; user-select: none; }
         header { background: rgba(0,0,0,0.3); position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
@@ -24,21 +24,19 @@ require_once '../../config.php';
         .pipe::before { content:''; position: absolute; top: -10px; left: -5px; width: 60px; height: 15px; background: linear-gradient(to right, #228b22, #32cd32, #228b22); border-radius: 5px; border: 2px solid #1a6b1a; }
         .score-display { position: absolute; top: 10px; right: 15px; background: rgba(0,0,0,0.7); color: #fff; padding: 8px 15px; border-radius: 20px; font-size: 16px; font-weight: bold; z-index: 100; }
         .controls-hint { position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.6); color: #fff; padding: 8px 16px; border-radius: 20px; font-size: 12px; z-index: 100; }
-        .game-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); color: #fff; padding: 25px 35px; border-radius: 12px; font-size: 18px; text-align: center; z-index: 2000; display: none; }
-        .game-message.show { display: block; }
         footer { flex-shrink: 0; padding: 5px 20px; font-size: 10px; color: #fff; background: rgba(0,0,0,0.3); text-align: center; }
-        footer a { color: #fff; }
     </style>
-<?php require_once ../header.php; ?>
-<?php require_once '../header.php'; ?>
 </head>
 <body>
-    
-        
-            <a href="../../index.php" class="logo">🎮 <?= SITE_NAME ?></a>
-            <nav><a href="../../index.php">게임</a><a href="../../blog/">블로그</a></nav>
+    <header>
+        <div class="header-content">
+            <a href="http://tomseol.pe.kr/" class="logo">🎮 <?= SITE_NAME ?></a>
+            <nav>
+                <a href="http://tomseol.pe.kr/">미니게임</a>
+                <a href="http://tomseol.pe.kr/blog/">블로그</a>
+            </nav>
         </div>
-    
+    </header>
     <main class="game-area">
         <div id="game-canvas">
             <div class="score-display"><span>⭐ <span id="score">0</span></span> <span style="margin-left:15px;">🏃 <span id="distance">0</span>m</span></div>
@@ -47,7 +45,6 @@ require_once '../../config.php';
             <div class="ground"></div>
         </div>
     </main>
-    <div class="game-message" id="gameMessage"><div id="messageText"></div><button onclick="startGame()" style="margin-top:15px;padding:12px 25px;border:none;border-radius:8px;background:#fff;color:#000;font-weight:bold;">다시하기</button></div>
     <footer><p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p></footer>
     <script src="game.js"></script>
 </body>
