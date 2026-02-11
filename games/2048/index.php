@@ -33,37 +33,6 @@ require_once '../../config.php';
             user-select: none;
         }
         
-        .game-header-section {
-            flex-shrink: 0;
-            padding: 8px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        
-        .game-header-section .logo {
-            font-size: 16px;
-            font-weight: bold;
-            color: #776e65;
-        }
-        
-        .game-header-section nav {
-            display: flex;
-            gap: 15px;
-        }
-        
-        .game-header-section nav a {
-            font-size: 13px;
-            color: #776e65;
-            text-decoration: none;
-        }
-        
-        .game-header-section nav a:hover {
-            text-decoration: underline;
-        }
-        
         .game-area {
             flex: 1;
             display: flex;
@@ -232,14 +201,6 @@ require_once '../../config.php';
     </style>
 </head>
 <body>
-    <header class="game-header-section">
-        <a href="../index.php" class="logo">🎮 2048</a>
-        <nav>
-            <a href="../index.php">게임</a>
-            <a href="../blog/">블로그</a>
-        </nav>
-    </header>
-
     <main class="game-area">
         <div class="score-bar">
             <div class="score-box">
