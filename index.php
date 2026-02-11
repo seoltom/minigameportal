@@ -119,16 +119,7 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
     </style>
 </head>
 <body>
-    <!-- 헤더 -->
-    <header>
-        <div class="header-content">
-            <a href="index.php" class="logo">🎮 <?= SITE_NAME ?></a>
-            <nav>
-                <a href="index.php" class="active">미니게임</a>
-                <a href="blog/">블로그</a>
-            </nav>
-        </div>
-    </header>
+    <?php require_once 'header.php'; ?>
 
     <!-- 메인 콘텐츠 -->
     <main class="container">
