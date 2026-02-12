@@ -70,14 +70,10 @@ require_once '../../config.php';
             left: 50px;
             font-size: 50px;
             z-index: 10;
+            transition: bottom 0.5s ease-out;
         }
         #player.jumping {
-            animation: jump-anim 0.5s ease-out;
-        }
-        @keyframes jump-anim {
-            0% { bottom: 40%; transform: rotate(0deg); }
-            50% { bottom: 65%; transform: rotate(20deg); }
-            100% { bottom: 40%; transform: rotate(0deg); }
+            bottom: 65% !important;
         }
         
         .obstacle {
@@ -168,22 +164,13 @@ require_once '../../config.php';
     let obstacles = [], coins = [], clouds = [];
     let speed = 6;
     let animId = null;
-    let lastObstacleTime = 0;
+    let nextObstacleTime = 0;
+    
+    const obstacleTypes = ['🐌', '🐸', '🦋', '🐙'];
     
     function init() {
-        // 터치 이벤트
-        area.addEventListener('touchstart', (e) => {
-            e.preventDefault();
-            handleAction();
-        }, { passive: false });
-        
-        // 마우스 클릭
-        area.addEventListener('mousedown', (e) => {
-            e.preventDefault();
-            handleAction();
-        });
-        
-        // 키보드
+        area.addEventListener('touchstart', handleAction, { passive: false });
+        area.addEventListener('mousedown', handleAction);
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
                 e.preventDefault();
@@ -193,7 +180,7 @@ require_once '../../config.php';
         
         // 구름 생성
         for (let i = 0; i < 5; i++) {
-            createCloud(Math.random() * window.innerWidth);
+            createCloud(Math.random() * area.clientWidth);
         }
         
         if (localStorage.getItem('darkMode') === '1') {
@@ -202,7 +189,9 @@ require_once '../../config.php';
         }
     }
     
-    function handleAction() {
+    function handleAction(e) {
+        if (e) e.preventDefault();
+        
         if (!running) {
             startGame();
         } else if (!isJumping) {
@@ -213,7 +202,6 @@ require_once '../../config.php';
     function jump() {
         isJumping = true;
         player.classList.add('jumping');
-        player.textContent = '🐻';
         
         setTimeout(() => {
             isJumping = false;
@@ -229,7 +217,7 @@ require_once '../../config.php';
         dist = 0;
         speed = 6;
         isJumping = false;
-        lastObstacleTime = Date.now();
+        nextObstacleTime = Date.now() + 500;
         
         obstacles.forEach(o => o.el.remove());
         coins.forEach(c => c.el.remove());
@@ -249,27 +237,25 @@ require_once '../../config.php';
     }
     
     function createObstacle() {
-        const types = ['🐌', '🐸', '🦋', '🐙'];
-        const type = types[Math.floor(Math.random() * types.length)];
-        
+        const type = obstacleTypes[Math.floor(Math.random() * obstacleTypes.length)];
         const el = document.createElement('div');
         el.className = 'obstacle';
         el.textContent = type;
-        el.style.left = area.clientWidth + 'px';
+        el.style.left = (area.clientWidth + 50) + 'px';
         area.appendChild(el);
         
-        obstacles.push({ el, x: area.clientWidth });
+        obstacles.push({ el, x: area.clientWidth + 50 });
     }
     
     function createCoin() {
         const el = document.createElement('div');
         el.className = 'coin';
         el.textContent = '⭐';
-        el.style.left = area.clientWidth + 'px';
+        el.style.left = (area.clientWidth + 30) + 'px';
         el.style.bottom = (45 + Math.random() * 25) + '%';
         area.appendChild(el);
         
-        coins.push({ el, x: area.clientWidth });
+        coins.push({ el, x: area.clientWidth + 30 });
     }
     
     function createCloud(x) {
@@ -287,6 +273,7 @@ require_once '../../config.php';
         if (!running) return;
         
         const w = area.clientWidth;
+        const now = Date.now();
         
         // 거리 증가
         dist++;
@@ -303,15 +290,15 @@ require_once '../../config.php';
             speed += 0.5;
         }
         
-        // 장애물 생성 (더 자주)
-        const now = Date.now();
-        if (now - lastObstacleTime > 1500 && Math.random() < 0.7) {
+        // 장애물 생성 - 바로 생성!
+        if (now > nextObstacleTime) {
             createObstacle();
-            lastObstacleTime = now;
+            // 다음 장애물 시간 (랜덤 1-2초)
+            nextObstacleTime = now + 1000 + Math.random() * 1000;
         }
         
         // 코인 생성
-        if (Math.random() < 0.03) {
+        if (Math.random() < 0.02) {
             createCoin();
         }
         
@@ -320,31 +307,24 @@ require_once '../../config.php';
             c.x -= speed * 0.3;
             if (c.x < -60) {
                 c.x = w + 60;
-                c.el.style.top = (10 + Math.random() * 30) + '%';
             }
             c.el.style.left = c.x + 'px';
         });
         
-        // 장애물 이동
+        // 장애물 이동 및 충돌
         obstacles.forEach(o => {
-            o.x += speed;
+            o.x -= speed;
             o.el.style.left = o.x + 'px';
             
-            // 충돌 검사
-            const pLeft = 50;
-            const pRight = 90;
-            const pBottom = 40;
-            const pTop = 80;
-            
-            const oLeft = o.x;
-            const oRight = o.x + 40;
-            
-            if (pRight > oLeft && pLeft < oRight) {
-                gameOver();
+            // 충돌 검사 (플레이어 위치: left 50, width ~50)
+            if (o.x < 100 && o.x > 40) {
+                if (!isJumping || parseInt(player.style.bottom) < 50) {
+                    gameOver();
+                }
             }
             
             // 제거
-            if (o.x > w + 50) {
+            if (o.x < -50) {
                 o.el.remove();
                 obstacles = obstacles.filter(ob => ob !== o);
             }
@@ -352,14 +332,11 @@ require_once '../../config.php';
         
         // 코인 이동
         coins.forEach(c => {
-            c.x += speed;
+            c.x -= speed;
             c.el.style.left = c.x + 'px';
             
             // 수집
-            const pLeft = 50;
-            const pRight = 90;
-            
-            if (pRight > c.x && pLeft < c.x + 30) {
+            if (c.x < 100 && c.x > 40) {
                 score += 50;
                 document.getElementById('score').textContent = score;
                 c.el.remove();
@@ -367,7 +344,7 @@ require_once '../../config.php';
                 if (navigator.vibrate) navigator.vibrate(15);
             }
             
-            if (c.x > w + 40) {
+            if (c.x < -40) {
                 c.el.remove();
                 coins = coins.filter(co => co !== c);
             }
@@ -384,7 +361,7 @@ require_once '../../config.php';
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
         
         const best = localStorage.getItem('marioBest') || 0;
-        let msg = `💀 게임 오버!<br>점수: ${score}<br>거리: ${dist}m`;
+        let msg = '💀 게임 오버!<br>점수: ' + score + '<br>거리: ' + dist + 'm';
         if (score > best) {
             localStorage.setItem('marioBest', score);
             msg += '<br>🏆 최고 점수!';
