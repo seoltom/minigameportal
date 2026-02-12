@@ -12,6 +12,34 @@ require_once $basePath . '/config.php';
 $scriptPath = $_SERVER['PHP_SELF'];
 $isGamePage = (strpos($scriptPath, '/games/') !== false);
 
+// 게임 이름 추출 (있는 경우)
+$gameName = '';
+if ($isGamePage) {
+    $pathParts = explode('/', dirname($scriptPath));
+    $gameFolder = end($pathParts);
+    // 폴더 이름을 게임 이름으로 변환
+    $gameName = ucwords(str_replace('-', ' ', $gameFolder));
+    // 특수 이름 매핑
+    $gameNameMap = [
+        '2048' => '2048',
+        'Tetris' => '테트리스',
+        'Mahjong Connect' => '마작 연결',
+        'Bejeweled' => '보석 매칭',
+        'Minesweeper' => '지뢰 찾기',
+        'Memory' => '카드 맞추기',
+        'Brick Breaker' => '벽돌 깨기',
+        'Tic Tac Toe' => '틱택토',
+        'Mario Run' => '마리오 런',
+        'Flappy Bird' => '플래피 버드',
+        'Snake' => '스네이크',
+        'Pong' => '퐁',
+        'Solitaire' => '솔리테어',
+    ];
+    if (isset($gameNameMap[$gameName])) {
+        $gameName = $gameNameMap[$gameName];
+    }
+}
+
 // 절대 경로로 링크 설정
 $homeUrl = 'http://tomseol.pe.kr/';
 $blogUrl = 'http://tomseol.pe.kr/blog/';
@@ -159,7 +187,7 @@ body.dark-mode footer a {
 
 <header>
     <div class="header-content">
-        <a href="<?= $homeUrl ?>" class="logo">🎮 <?= SITE_NAME ?></a>
+        <a href="<?= $homeUrl ?>" class="logo">🎮 <?= SITE_NAME ?><?= $gameName ? ' - ' . $gameName : '' ?></a>
         <nav>
             <a href="<?= $homeUrl ?>" <?= !$isGamePage ? 'class="active"' : '' ?>>미니게임</a>
             <a href="<?= $blogUrl ?>">블로그</a>
