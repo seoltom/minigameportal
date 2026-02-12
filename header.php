@@ -23,34 +23,34 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
+    overflow: hidden;
 }
 .header-content {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 15px;
+    padding: 8px 12px;
     max-width: 1200px;
     margin: 0 auto;
-    flex-wrap: nowrap;
-    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
 }
 .logo {
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     color: #4f46e5;
-    white-space: nowrap;
-    flex-shrink: 0;
+    flex: 0 0 auto;
 }
 nav {
     display: flex;
-    gap: 12px;
-    flex-shrink: 0;
+    gap: 10px;
+    flex: 0 0 auto;
 }
 nav a {
-    font-size: 13px;
+    font-size: 12px;
     color: #666;
     text-decoration: none;
-    white-space: nowrap;
+    padding: 4px 8px;
 }
 nav a.active {
     color: #4f46e5;
