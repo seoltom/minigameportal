@@ -211,5 +211,12 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
     <footer>
         <p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a>에서 제작한 <?= SITE_NAME ?></p>
     </footer>
+    
+    <!-- 다크 모드 초기화 -->
+    <script>
+    if (localStorage.getItem('darkMode') === '1') {
+        document.body.classList.add('dark-mode');
+    }
+    </script>
 </body>
 </html>

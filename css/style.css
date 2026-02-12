@@ -288,3 +288,26 @@ footer a {
         font-size: 10px;
     }
 }
+
+/* 다크 모드 */
+body.dark-mode {
+    background-color: #1a1a2e !important;
+    color: #fff !important;
+}
+
+body.dark-mode .game-card {
+    background: rgba(255,255,255,0.1) !important;
+}
+
+body.dark-mode .game-title {
+    color: #fff !important;
+}
+
+body.dark-mode .game-desc {
+    color: #ccc !important;
+}
+
+body.dark-mode footer,
+body.dark-mode footer a {
+    color: #888 !important;
+}
