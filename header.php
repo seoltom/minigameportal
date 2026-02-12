@@ -115,25 +115,45 @@ if (localStorage.getItem('darkMode') === '1') {
 </script>
 
 <style>
-/* 다크 모드 전체 적용 */
+/* 다크 모드 전체 적용 - 강제 덮어쓰기 */
 body.dark-mode {
     background: #1a1a2e !important;
     color: #fff !important;
+}
+body.dark-mode html,
+body.dark-mode body {
+    background: #1a1a2e !important;
 }
 body.dark-mode .game-area,
 body.dark-mode .game-container,
 body.dark-mode #game-board,
 body.dark-mode .game-info,
-body.dark-mode .controls {
+body.dark-mode .controls,
+body.dark-mode .game-board-container,
+body.dark-mode #game-canvas {
     background: transparent !important;
 }
 body.dark-mode .score-box,
 body.dark-mode .info-box,
-body.dark-mode .info-item {
+body.dark-mode .info-item,
+body.dark-mode .stats {
+    background: rgba(255,255,255,0.1) !important;
+    color: #fff !important;
+}
+body.dark-mode .score-label,
+body.dark-mode .info-label {
+    color: #ccc !important;
+}
+body.dark-mode .tile,
+body.dark-mode .gem {
     background: rgba(255,255,255,0.1) !important;
 }
-body.dark-mode .score-label {
-    color: #ccc !important;
+body.dark-mode .game-message {
+    background: rgba(0,0,0,0.95) !important;
+}
+body.dark-mode footer,
+body.dark-mode footer a {
+    color: #888 !important;
 }
 </style>
 
