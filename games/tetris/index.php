@@ -9,20 +9,8 @@ require_once '../../config.php';
     <title>Tetris - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
     <style>
-        html, body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
-        body { overflow: hidden; height: 100%; margin: 0; padding: 0; background: #1a1a2e; }
-        body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
+        html, body { overflow: hidden; height: 100%; margin: 0; padding: 0; background: #1a1a2e; }
         body { display: flex; flex-direction: column; height: 100%; touch-action: manipulation; user-select: none; }
-        /* 다크 모드 */
-        body.dark-mode header { background: #1a1a2e !important; }
-        body.dark-mode .logo { color: #fff !important; }
-        body.dark-mode nav a { color: #ccc !important; }
-        body.dark-mode nav a.active { color: #4ade80 !important; }
-        body.dark-mode footer, 
-        body.dark-mode footer a { color: #888 !important; }
-        body.dark-mode header { background: #1a1a2e !important; }
-        body.dark-mode .logo { color: #fff !important; }
-        body.dark-mode nav a { color: #ccc !important; }
         header { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
         .header-content { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 1200px; margin: 0 auto; }
         .logo { font-size: 18px; font-weight: bold; color: #4f46e5; }
@@ -59,6 +47,11 @@ require_once '../../config.php';
         .game-message.show { display: block; }
         footer { flex-shrink: 0; padding: 5px 20px; font-size: 10px; color: #666; text-align: center; }
         footer a { color: #666; }
+        /* 다크 모드 - 헤더 */
+        body.dark-mode header { background: #1a1a2e !important; }
+        body.dark-mode .logo { color: #fff !important; }
+        body.dark-mode nav a { color: #ccc !important; }
+        body.dark-mode footer, body.dark-mode footer a { color: #888 !important; }
     </style>
 </head>
 <body>
@@ -101,12 +94,6 @@ require_once '../../config.php';
     <footer><p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p></footer>
     <script src="game.js"></script>
     <script>
-    if (localStorage.getItem('darkMode') === '1') {
-        document.body.classList.add('dark-mode');
-    }
-    </script>
-    <script>
-    // 다크 모드
     if (localStorage.getItem('darkMode') === '1') {
         document.body.classList.add('dark-mode');
     }
