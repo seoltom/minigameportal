@@ -55,11 +55,7 @@ require_once '../../config.php';
             text-align: center;
             font-size: 12px;
         }
-        .info-value {
-            font-size: 16px;
-            font-weight: bold;
-            color: #fff;
-        }
+        .info-value { font-size: 16px; font-weight: bold; }
         
         .controls {
             display: flex;
@@ -95,22 +91,11 @@ require_once '../../config.php';
             font-size: 20px;
             cursor: pointer;
             user-select: none;
-            -webkit-user-select: none;
         }
-        .tile.selected {
-            border: 3px solid #f59563;
-            background: #f2b179;
-        }
-        .tile.matched {
-            visibility: hidden;
-            opacity: 0;
-        }
-        .tile.hint {
-            animation: blink 0.3s infinite;
-        }
-        @keyframes blink {
-            50% { opacity: 0.5; }
-        }
+        .tile.selected { border: 3px solid #f59563; background: #f2b179; }
+        .tile.matched { visibility: hidden; opacity: 0; }
+        .tile.hint { animation: blink 0.3s infinite; }
+        @keyframes blink { 50% { opacity: 0.5; }
         
         .game-message {
             position: fixed;
@@ -172,12 +157,7 @@ require_once '../../config.php';
     
     <script>
     const TILES = ['🀄','🀅','🀆','🀇','🀈','🀉','🀊','🀋','🀌','🀍','🀎','🀏','🀐','🀑','🀒','🀓'];
-    
-    const LEVELS = {
-        easy: { rows: 4, cols: 6, time: 180 },
-        normal: { rows: 6, cols: 8, time: 300 },
-        hard: { rows: 8, cols: 10, time: 480 }
-    };
+    const LEVELS = { easy:{rows:4,cols:6,time:180}, normal:{rows:6,cols:8,time:300}, hard:{rows:8,cols:10,time:480} };
     
     let board = [], rows = 6, cols = 8, selected = null, score = 0, pairsLeft = 0, timeLeft = 300, timer = null;
     
@@ -219,10 +199,10 @@ require_once '../../config.php';
         const container = document.getElementById('game-board');
         container.innerHTML = '';
         
-        const winW = container.clientWidth - 20;
-        const winH = container.clientHeight - 20;
-        const tileW = Math.floor((winW - (cols - 1) * 2) / cols);
-        const tileH = Math.floor((winH - (rows - 1) * 2) / rows);
+        const containerWidth = container.clientWidth - 20;
+        const containerHeight = container.clientHeight - 20;
+        const tileW = Math.floor((containerWidth - (cols - 1) * 2) / cols);
+        const tileH = Math.floor((containerHeight - (rows - 1) * 2) / rows);
         const size = Math.min(tileW, tileH, 45);
         
         container.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
@@ -230,14 +210,13 @@ require_once '../../config.php';
         for (let i = 1; i <= rows; i++) {
             for (let j = 1; j <= cols; j++) {
                 const tile = document.createElement('div');
-                tile.className = 'tile';
+                tile.className = 'tile' + (selected && selected.r === i && selected.c === j ? ' selected' : '') + (board[i][j] === 0 ? ' matched' : '');
                 tile.textContent = board[i][j] || '';
-                if (board[i][j] === 0) tile.classList.add('matched');
-                tile.dataset.r = i;
-                tile.dataset.c = j;
                 tile.style.width = size + 'px';
                 tile.style.height = Math.floor(size * 1.2) + 'px';
                 tile.style.fontSize = Math.floor(size * 0.7) + 'px';
+                tile.dataset.r = i;
+                tile.dataset.c = j;
                 tile.onclick = () => clickTile(i, j);
                 container.appendChild(tile);
             }
@@ -247,14 +226,16 @@ require_once '../../config.php';
     function clickTile(r, c) {
         if (!board[r][c] || timeLeft <= 0) return;
         
-        const tile = document.querySelector(`.tile[data-r="${r}"][data-c="${c}"]`);
+        // 같은 타일 선택 해제
+        if (selected && selected.r === r && selected.c === c) {
+            selected = null;
+            renderBoard();
+            return;
+        }
         
         if (!selected) {
-            selected = { r, c, el: tile };
-            tile.classList.add('selected');
-        } else if (selected.r === r && selected.c === c) {
-            tile.classList.remove('selected');
-            selected = null;
+            selected = {r, c};
+            renderBoard();
         } else if (board[selected.r][selected.c] === board[r][c]) {
             const path = findPath(selected.r, selected.c, r, c);
             if (path) {
@@ -264,10 +245,6 @@ require_once '../../config.php';
                 board[r][c] = 0;
                 if (navigator.vibrate) navigator.vibrate(30);
                 
-                selected.el.classList.remove('selected');
-                selected.el.classList.add('matched');
-                tile.classList.add('matched');
-                
                 setTimeout(() => {
                     renderBoard();
                     updateStats();
@@ -275,14 +252,12 @@ require_once '../../config.php';
                 }, 200);
                 selected = null;
             } else {
-                selected.el.classList.remove('selected');
-                selected = { r, c, el: tile };
-                tile.classList.add('selected');
+                selected = {r, c};
+                renderBoard();
             }
         } else {
-            selected.el.classList.remove('selected');
-            selected = { r, c, el: tile };
-            tile.classList.add('selected');
+            selected = {r, c};
+            renderBoard();
         }
     }
     
@@ -364,7 +339,6 @@ require_once '../../config.php';
     
     window.onresize = renderBoard;
     
-    // 다크 모드
     if (localStorage.getItem('darkMode') === '1') {
         document.body.classList.add('dark-mode');
         document.querySelector('header')?.classList.add('dark');
