@@ -96,6 +96,7 @@ require_once '../../config.php';
     <script>
     if (localStorage.getItem('darkMode') === '1') {
         document.body.classList.add('dark-mode');
+        document.querySelector('header').classList.add('dark');
     }
     </script>
 </body>
