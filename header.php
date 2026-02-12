@@ -16,6 +16,43 @@ $isGamePage = (strpos($scriptPath, '/games/') !== false);
 $homeUrl = 'http://tomseol.pe.kr/';
 $blogUrl = 'http://tomseol.pe.kr/blog/';
 ?>
+<style>
+header {
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.logo {
+    font-size: 18px;
+    font-weight: bold;
+    color: #4f46e5;
+    white-space: nowrap;
+}
+nav {
+    display: flex;
+    gap: 15px;
+}
+nav a {
+    font-size: 14px;
+    color: #666;
+    text-decoration: none;
+    white-space: nowrap;
+}
+nav a.active {
+    color: #4f46e5;
+    font-weight: 600;
+}
+</style>
 <header>
     <div class="header-content">
         <a href="<?= $homeUrl ?>" class="logo">🎮 <?= SITE_NAME ?></a>
