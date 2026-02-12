@@ -37,6 +37,8 @@ require_once '../config.php';
         footer { padding: 20px; text-align: center; font-size: 14px; color: #888; }
         footer a { color: #888; }
         body.dark-mode footer, body.dark-mode footer a { color: #888 !important; }
+        .theme-btn { background: none; border: 1px solid #ddd; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
+        body.dark-mode .theme-btn { border-color: #444; color: #fff; }
     </style>
 </head>
 <body>
@@ -46,6 +48,7 @@ require_once '../config.php';
             <nav>
                 <a href="../index.php">미니게임</a>
                 <a href="index.php" class="active">블로그</a>
+                <button class="theme-btn" onclick="toggleTheme()" title="테마 전환">🌙</button>
             </nav>
         </div>
     </header>
@@ -69,6 +72,12 @@ require_once '../config.php';
         <p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a>에서 제작한 <?= SITE_NAME ?></p>
     </footer>
     <script>
+    function toggleTheme() {
+        const isDark = document.body.classList.contains('dark-mode');
+        document.body.classList.toggle('dark-mode');
+        document.querySelector('header').classList.toggle('dark');
+        localStorage.setItem('darkMode', isDark ? '0' : '1');
+    }
     if (localStorage.getItem('darkMode') === '1') {
         document.body.classList.add('dark-mode');
         document.querySelector('header').classList.add('dark');
