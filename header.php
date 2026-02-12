@@ -23,7 +23,19 @@ header {
     position: sticky;
     top: 0;
     z-index: 100;
-    overflow: hidden;
+    transition: background 0.3s, color 0.3s;
+}
+header.dark {
+    background: #1a1a2e;
+}
+header.dark .logo {
+    color: #fff;
+}
+header.dark nav a {
+    color: #ccc;
+}
+header.dark nav a.active {
+    color: #4ade80;
 }
 .header-content {
     display: flex;
@@ -45,6 +57,7 @@ nav {
     display: flex;
     gap: 10px;
     flex: 0 0 auto;
+    align-items: center;
 }
 nav a {
     font-size: 12px;
@@ -56,13 +69,53 @@ nav a.active {
     color: #4f46e5;
     font-weight: 600;
 }
+.theme-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s;
+}
+header.dark .theme-btn {
+    border-color: #444;
+    color: #fff;
+}
+.theme-btn:hover {
+    background: #f0f0f0;
+}
+header.dark .theme-btn:hover {
+    background: #333;
+}
 </style>
+
+<script>
+function setTheme(dark) {
+    document.querySelectorAll('header').forEach(h => {
+        h.classList.toggle('dark', dark);
+    });
+    localStorage.setItem('darkMode', dark ? '1' : '0');
+}
+
+function toggleTheme() {
+    const isDark = localStorage.getItem('darkMode') === '1';
+    setTheme(!isDark);
+}
+
+// Load saved theme
+if (localStorage.getItem('darkMode') === '1') {
+    setTheme(true);
+}
+</script>
+
 <header>
     <div class="header-content">
         <a href="<?= $homeUrl ?>" class="logo">🎮 <?= SITE_NAME ?></a>
         <nav>
             <a href="<?= $homeUrl ?>" <?= !$isGamePage ? 'class="active"' : '' ?>>미니게임</a>
             <a href="<?= $blogUrl ?>">블로그</a>
+            <button class="theme-btn" onclick="toggleTheme()" title="테마 전환">🌙</button>
         </nav>
     </div>
 </header>
