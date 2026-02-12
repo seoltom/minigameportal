@@ -12,7 +12,7 @@ require_once '../../config.php';
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <title>2048 - <?= SITE_NAME ?></title>
-    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/style.css?v=20260212">
     <style>
         html, body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
         body { overflow: hidden; height: 100%; margin: 0; padding: 0; background: #faf8ef; }
@@ -93,7 +93,7 @@ require_once '../../config.php';
         <button onclick="initGame()" style="margin-top:15px;padding:12px 25px;border:none;border-radius:8px;background:#fff;color:#776e65;font-weight:bold;font-size:16px;">다시하기</button>
     </div>
     <footer><p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p></footer>
-    <script src="game.js"></script>
+    <script src="game.js?v=20260212"></script>
     <script>
     if (localStorage.getItem('darkMode') === '1') {
         document.body.classList.add('dark-mode');

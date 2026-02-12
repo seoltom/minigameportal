@@ -7,7 +7,7 @@ require_once '../../config.php';
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Minesweeper - <?= SITE_NAME ?></title>
-    <link rel="stylesheet" href="../../css/style.css">
+    <link rel="stylesheet" href="../../css/style.css?v=20260212">
     <style>
         html, body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
         body { overflow: hidden; height: 100%; margin: 0; background: linear-gradient(135deg, #2c3e50, #1a252f); }
@@ -58,7 +58,7 @@ require_once '../../config.php';
         </div>
     </main>
     <footer><p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p></footer>
-    <script src="game.js"></script>
+    <script src="game.js?v=20260212"></script>
     <script>
     if (localStorage.getItem('darkMode') === '1') {
         document.body.classList.add('dark-mode');
