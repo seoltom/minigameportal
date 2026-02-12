@@ -70,9 +70,15 @@ require_once '../../config.php';
             left: 50px;
             font-size: 50px;
             z-index: 10;
+            animation: none;
         }
         #player.jumping {
-            bottom: 65% !important;
+            animation: jump-arc 0.5s ease-out;
+        }
+        @keyframes jump-arc {
+            0% { bottom: 40%; }
+            50% { bottom: 65%; }
+            100% { bottom: 40%; }
         }
         
         .obstacle {
@@ -201,12 +207,14 @@ require_once '../../config.php';
     function jump() {
         isJumping = true;
         player.classList.add('jumping');
-        // 점프 종료 시간 (500ms 후)
         jumpEndTime = Date.now() + 500;
         
+        // 애니메이션 끝나면 상태 리셋
         setTimeout(() => {
-            isJumping = false;
-            player.classList.remove('jumping');
+            if (isJumping) {
+                isJumping = false;
+                player.classList.remove('jumping');
+            }
         }, 500);
         
         if (navigator.vibrate) navigator.vibrate(20);
@@ -290,7 +298,6 @@ require_once '../../config.php';
             speed += 0.5;
         }
         
-        // 장애물 생성
         if (now > nextObstacleTime) {
             createObstacle();
             nextObstacleTime = now + 1000 + Math.random() * 1000;
@@ -300,27 +307,20 @@ require_once '../../config.php';
             createCoin();
         }
         
-        // 구름 이동
         clouds.forEach(c => {
             c.x -= speed * 0.3;
             if (c.x < -60) c.x = w + 60;
             c.el.style.left = c.x + 'px';
         });
         
-        // 장애물 이동 및 충돌
         obstacles.forEach(o => {
             o.x -= speed;
             o.el.style.left = o.x + 'px';
             
-            // 충돌 검사 - 장애물이 플레이어 영역에 있음
-            // 플레이어: left 50-90, 바닥에서 40% 위치
-            // 점프중이면 바닥에서 65% 위치
             if (o.x < 100 && o.x > 40) {
-                // 점프중인지 확인 (현재 시간이 jumpEndTime보다 작으면 점프중)
                 if (now < jumpEndTime) {
                     // 점프중 - 안전
                 } else {
-                    // 점프안함 - 죽음
                     gameOver();
                 }
             }
@@ -331,7 +331,6 @@ require_once '../../config.php';
             }
         });
         
-        // 코인 수집
         coins.forEach(c => {
             c.x -= speed;
             c.el.style.left = c.x + 'px';
