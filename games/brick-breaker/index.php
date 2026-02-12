@@ -56,37 +56,35 @@ require_once '../../config.php';
         }
         .info-value { font-size: 16px; font-weight: bold; color: #ffd700; }
         
-        #game-container {
+        #game-area {
             flex: 1;
             position: relative;
             background: #0f0f23;
             overflow: hidden;
         }
-        #game-canvas {
-            width: 100%;
-            height: 100%;
-            display: block;
-        }
+        
         #paddle {
             position: absolute;
             bottom: 20px;
-            height: 12px;
+            height: 14px;
             background: linear-gradient(to top, #667eea, #764ba2);
-            border-radius: 6px;
+            border-radius: 7px;
             touch-action: none;
         }
+        
         #ball {
             position: absolute;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             background: #fff;
             border-radius: 50%;
-            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+            box-shadow: 0 0 15px rgba(255,255,255,0.9);
         }
+        
         .brick {
             position: absolute;
-            height: 18px;
-            border-radius: 3px;
+            height: 20px;
+            border-radius: 4px;
         }
         
         .game-message {
@@ -127,8 +125,7 @@ require_once '../../config.php';
         <div class="info-box">목숨: <span class="info-value" id="lives">3</span></div>
     </div>
     
-    <div id="game-container">
-        <canvas id="game-canvas"></canvas>
+    <div id="game-area">
         <div id="paddle"></div>
         <div id="ball"></div>
     </div>
@@ -139,32 +136,24 @@ require_once '../../config.php';
     </div>
     
     <script>
-    const canvas = document.getElementById('game-canvas');
-    const container = document.getElementById('game-container');
+    const area = document.getElementById('game-area');
     const paddle = document.getElementById('paddle');
     const ball = document.getElementById('ball');
     
-    let ctx = null;
-    let width = 0, height = 0;
-    let paddleX = 0, paddleW = 80, paddleH = 12;
-    let ballX = 0, ballY = 0, ballR = 7, ballVX = 0, ballVY = 0;
+    let paddleX = 0, paddleW = 100, paddleH = 14;
+    let ballX = 0, ballY = 0, ballR = 8, ballVX = 0, ballVY = 0;
     let bricks = [];
-    let brickRows = 5, brickCols = 7;
     let score = 0, lives = 3;
     let running = false, animId = null;
-    let lastTime = 0;
     
     const brickColors = ['#f56565', '#ed8936', '#ecc94b', '#48bb78', '#4299e1'];
     
     function init() {
-        ctx = canvas.getContext('2d');
-        resize();
         window.addEventListener('resize', resize);
         
-        // 터치/마우스 이벤트
-        container.addEventListener('touchmove', movePaddle, { passive: false });
-        container.addEventListener('touchstart', movePaddle, { passive: false });
-        container.addEventListener('mousemove', movePaddle);
+        area.addEventListener('touchmove', movePaddle, { passive: false });
+        area.addEventListener('touchstart', movePaddle, { passive: false });
+        area.addEventListener('mousemove', movePaddle);
         
         showStartScreen();
         
@@ -175,16 +164,12 @@ require_once '../../config.php';
     }
     
     function resize() {
-        width = container.clientWidth;
-        height = container.clientHeight;
-        canvas.width = width;
-        canvas.height = height;
-        
         if (!running) {
-            paddleX = (width - paddleW) / 2;
-            paddle.style.left = paddleX + 'px';
+            paddleW = Math.min(area.clientWidth * 0.3, 120);
+            paddleX = (area.clientWidth - paddleW) / 2;
             paddle.style.width = paddleW + 'px';
-            paddle.style.height = paddleH + 'px';
+            paddle.style.left = paddleX + 'px';
+            paddle.style.bottom = '20px';
         }
     }
     
@@ -192,15 +177,11 @@ require_once '../../config.php';
         if (!running) return;
         e.preventDefault();
         
-        const rect = container.getBoundingClientRect();
-        let clientX = e.clientX;
-        
-        if (e.touches && e.touches.length > 0) {
-            clientX = e.touches[0].clientX;
-        }
+        const rect = area.getBoundingClientRect();
+        let clientX = e.clientX || (e.touches && e.touches[0].clientX);
         
         paddleX = clientX - rect.left - paddleW / 2;
-        paddleX = Math.max(0, Math.min(width - paddleW, paddleX));
+        paddleX = Math.max(0, Math.min(area.clientWidth - paddleW, paddleX));
         paddle.style.left = paddleX + 'px';
     }
     
@@ -208,14 +189,10 @@ require_once '../../config.php';
         document.getElementById('messageText').innerHTML = '🧱 벽돌깨기<br><br>화면을 터치하여 시작!';
         document.getElementById('gameMessage').classList.add('show');
         
-        paddleX = (width - paddleW) / 2;
-        paddle.style.left = paddleX + 'px';
-        paddle.style.bottom = '20px';
-        
-        ballX = width / 2;
-        ballY = height - 60;
-        ball.style.left = ballX - ballR + 'px';
-        ball.style.top = ballY - ballR + 'px';
+        resize();
+        ball.style.display = 'block';
+        ball.style.left = (area.clientWidth / 2 - ballR) + 'px';
+        ball.style.top = (area.clientHeight - 80) + 'px';
     }
     
     function startGame() {
@@ -230,37 +207,35 @@ require_once '../../config.php';
         createBricks();
         resetBall();
         
-        paddle.style.width = Math.min(width * 0.25, 100) + 'px';
-        paddleW = parseInt(paddle.style.width);
-        paddleX = (width - paddleW) / 2;
-        paddle.style.left = paddleX + 'px';
-        
-        lastTime = performance.now();
         animId = requestAnimationFrame(update);
     }
     
     function createBricks() {
-        bricks = [];
         document.querySelectorAll('.brick').forEach(b => b.remove());
+        bricks = [];
         
-        const brickW = (width - (brickCols + 1) * 4) / brickCols;
-        const brickH = 18;
-        const offsetTop = 60;
+        const w = area.clientWidth;
+        const cols = 6;
+        const gap = 5;
+        const brickW = (w - (cols + 1) * gap) / cols;
+        const brickH = 22;
+        const offsetTop = 50;
         
-        for (let r = 0; r < brickRows; r++) {
-            for (let c = 0; c < brickCols; c++) {
+        for (let r = 0; r < 5; r++) {
+            for (let c = 0; c < cols; c++) {
                 const el = document.createElement('div');
                 el.className = 'brick';
                 el.style.width = brickW + 'px';
                 el.style.height = brickH + 'px';
-                el.style.left = (4 + c * (brickW + 4)) + 'px';
-                el.style.top = (offsetTop + r * (brickH + 4)) + 'px';
-                el.style.background = brickColors[r % brickColors.length];
-                container.appendChild(el);
+                el.style.left = (gap + c * (brickW + gap)) + 'px';
+                el.style.top = (offsetTop + r * (brickH + gap)) + 'px';
+                el.style.background = brickColors[r];
+                area.appendChild(el);
                 
                 bricks.push({
-                    x: 4 + c * (brickW + 4),
-                    y: offsetTop + r * (brickH + 4),
+                    el: el,
+                    x: gap + c * (brickW + gap),
+                    y: offsetTop + r * (brickH + gap),
                     w: brickW,
                     h: brickH,
                     active: true
@@ -270,54 +245,54 @@ require_once '../../config.php';
     }
     
     function resetBall() {
-        ballX = width / 2;
-        ballY = height - 60;
+        const w = area.clientWidth;
+        const h = area.clientHeight;
         
-        const angle = (Math.random() * Math.PI / 3) - (Math.PI / 6);
-        const speed = Math.min(width * 0.012, 6);
+        ballX = w / 2;
+        ballY = h - 80;
+        
+        const angle = (Math.random() * 0.8 - 0.4) * Math.PI;
+        const speed = Math.min(w * 0.01, 5) + 2;
         ballVX = Math.cos(angle) * speed;
         ballVY = -speed;
         
-        ball.style.left = ballX - ballR + 'px';
-        ball.style.top = ballY - ballR + 'px';
+        ball.style.left = (ballX - ballR) + 'px';
+        ball.style.top = (ballY - ballR) + 'px';
     }
     
-    function update(now) {
+    function update() {
         if (!running) return;
         
-        const dt = Math.min((now - lastTime) / 16, 2);
-        lastTime = now;
+        const w = area.clientWidth;
+        const h = area.clientHeight;
         
         // 공 이동
-        ballX += ballVX * dt;
-        ballY += ballVY * dt;
+        ballX += ballVX;
+        ballY += ballVY;
         
         // 벽 충돌
-        if (ballX - ballR <= 0 || ballX + ballR >= width) {
+        if (ballX - ballR <= 0 || ballX + ballR >= w) {
             ballVX = -ballVX;
-            ballX = Math.max(ballR, Math.min(width - ballR, ballX));
-            if (navigator.vibrate) navigator.vibrate(10);
+            ballX = Math.max(ballR, Math.min(w - ballR, ballX));
         }
         if (ballY - ballR <= 0) {
             ballVY = -ballVY;
             ballY = ballR;
-            if (navigator.vibrate) navigator.vibrate(10);
         }
         
         // 패들 충돌
-        const paddleTop = height - 20 - paddleH;
+        const paddleTop = h - 20 - paddleH;
         if (ballY + ballR >= paddleTop && ballY - ballR <= paddleTop + paddleH && ballVY > 0) {
             if (ballX >= paddleX && ballX <= paddleX + paddleW) {
-                ballVY = -Math.abs(ballVY * 1.03);
+                ballVY = -Math.abs(ballVY * 1.05);
                 const hitPos = (ballX - paddleX) / paddleW;
-                ballVX = (hitPos - 0.5) * 10;
+                ballVX = (hitPos - 0.5) * 8;
                 ballY = paddleTop - ballR;
-                if (navigator.vibrate) navigator.vibrate(20);
             }
         }
         
-        // 공落下
-        if (ballY + ballR >= height) {
+        // 공 아래로
+        if (ballY + ballR >= h) {
             lives--;
             document.getElementById('lives').textContent = lives;
             
@@ -337,38 +312,36 @@ require_once '../../config.php';
                 ballY + ballR > b.y && ballY - ballR < b.y + b.h) {
                 
                 b.active = false;
-                document.querySelector(`.brick[style*="left: ${b.x}px"]`)?.remove();
+                b.el.style.display = 'none';
                 
+                // 충돌 방향
                 const overlapLeft = ballX + ballR - b.x;
                 const overlapRight = b.x + b.w - ballX + ballR;
                 const overlapTop = ballY + ballR - b.y;
                 const overlapBottom = b.y + b.h - ballY + ballR;
                 
-                if (overlapLeft < overlapRight && overlapLeft < overlapTop && overlapLeft < overlapBottom) {
-                    ballVX = -Math.abs(ballVX);
-                } else if (overlapRight < overlapTop && overlapRight < overlapBottom) {
-                    ballVX = Math.abs(ballVX);
-                } else if (overlapTop < overlapBottom) {
-                    ballVY = -Math.abs(ballVY);
+                const minX = Math.min(overlapLeft, overlapRight);
+                const minY = Math.min(overlapTop, overlapBottom);
+                
+                if (minX < minY) {
+                    ballVX = -ballVX;
                 } else {
-                    ballVY = Math.abs(ballVY);
+                    ballVY = -ballVY;
                 }
                 
                 score += 10;
                 document.getElementById('score').textContent = score;
-                if (navigator.vibrate) navigator.vibrate(15);
                 
-                // 승리 체크
+                // 승리
                 if (bricks.filter(bb => bb.active).length === 0) {
                     gameWon();
-                    return;
                 }
             }
         });
         
         // 렌더링
-        ball.style.left = ballX - ballR + 'px';
-        ball.style.top = ballY - ballR + 'px';
+        ball.style.left = (ballX - ballR) + 'px';
+        ball.style.top = (ballY - ballR) + 'px';
         
         animId = requestAnimationFrame(update);
     }
@@ -376,24 +349,16 @@ require_once '../../config.php';
     function gameOver() {
         running = false;
         cancelAnimationFrame(animId);
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        
-        setTimeout(() => {
-            document.getElementById('messageText').innerHTML = `💀 게임 오버!<br>점수: ${score}`;
-            document.getElementById('gameMessage').classList.add('show');
-        }, 300);
+        document.getElementById('messageText').innerHTML = '💀 게임 오버!<br>점수: ' + score;
+        document.getElementById('gameMessage').classList.add('show');
     }
     
     function gameWon() {
         running = false;
         cancelAnimationFrame(animId);
         score += lives * 100;
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-        
-        setTimeout(() => {
-            document.getElementById('messageText').innerHTML = `🎉 클리어!<br>점수: ${score}`;
-            document.getElementById('gameMessage').classList.add('show');
-        }, 300);
+        document.getElementById('messageText').innerHTML = '🎉 클리어!<br>점수: ' + score;
+        document.getElementById('gameMessage').classList.add('show');
     }
     
     init();
