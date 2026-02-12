@@ -59,62 +59,44 @@ require_once '../../config.php';
         #game-area {
             flex: 1;
             position: relative;
-            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 65%, #228B22 65%, #006400 100%);
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 60%, #228B22 60%, #32CD32 100%);
             overflow: hidden;
-        }
-        
-        #ground {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 35%;
+            cursor: pointer;
         }
         
         #player {
             position: absolute;
-            bottom: 35%;
-            left: 60px;
-            font-size: 45px;
+            bottom: 40%;
+            left: 50px;
+            font-size: 50px;
             z-index: 10;
-            transition: none;
-            animation: run 0.3s infinite alternate;
         }
         #player.jumping {
-            animation: jump-anim 0.6s ease-out;
-        }
-        @keyframes run {
-            from { transform: translateY(0); }
-            to { transform: translateY(-3px); }
+            animation: jump-anim 0.5s ease-out;
         }
         @keyframes jump-anim {
-            0% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-120px) rotate(15deg); }
-            100% { transform: translateY(0) rotate(0deg); }
+            0% { bottom: 40%; transform: rotate(0deg); }
+            50% { bottom: 65%; transform: rotate(20deg); }
+            100% { bottom: 40%; transform: rotate(0deg); }
         }
         
         .obstacle {
             position: absolute;
-            bottom: 35%;
-            font-size: 40px;
+            bottom: 40%;
+            font-size: 45px;
             z-index: 5;
         }
         
         .coin {
             position: absolute;
-            font-size: 30px;
+            font-size: 35px;
             z-index: 5;
-            animation: spin 0.4s infinite alternate;
-        }
-        @keyframes spin {
-            from { transform: scaleX(1); }
-            to { transform: scaleX(0.7); }
         }
         
         .cloud {
             position: absolute;
-            font-size: 50px;
-            opacity: 0.9;
+            font-size: 55px;
+            z-index: 1;
         }
         
         .game-message {
@@ -140,19 +122,14 @@ require_once '../../config.php';
         
         #hint {
             position: absolute;
-            bottom: 45%;
+            top: 50%;
             left: 50%;
-            transform: translateX(-50%);
+            transform: translate(-50%, -50%);
             color: #fff;
-            font-size: 16px;
+            font-size: 18px;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
             z-index: 20;
-            animation: pulse 1s infinite;
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.6; }
         }
     </style>
 </head>
@@ -173,7 +150,6 @@ require_once '../../config.php';
     </div>
     
     <div id="game-area">
-        <div id="ground"></div>
         <div id="player">🐻</div>
         <div id="hint">화면을 터치하여 시작!</div>
     </div>
@@ -188,30 +164,36 @@ require_once '../../config.php';
     const player = document.getElementById('player');
     
     let score = 0, dist = 0;
-    let isJumping = false, isRunning = false;
-    let playerY = 0; // 0 = ground, 1 = jumping
-    let velocityY = 0;
-    let running = false;
+    let isJumping = false, running = false;
     let obstacles = [], coins = [], clouds = [];
-    let speed = 5;
+    let speed = 6;
     let animId = null;
-    const GRAVITY = 0.8;
-    const JUMP_FORCE = -15;
-    const GROUND_Y = 35;
+    let lastObstacleTime = 0;
     
     function init() {
-        area.addEventListener('touchstart', handleJump, { passive: false });
-        area.addEventListener('mousedown', handleJump);
+        // 터치 이벤트
+        area.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            handleAction();
+        }, { passive: false });
+        
+        // 마우스 클릭
+        area.addEventListener('mousedown', (e) => {
+            e.preventDefault();
+            handleAction();
+        });
+        
+        // 키보드
         document.addEventListener('keydown', (e) => {
             if (e.code === 'Space' || e.code === 'ArrowUp') {
                 e.preventDefault();
-                handleJump();
+                handleAction();
             }
         });
         
         // 구름 생성
-        for (let i = 0; i < 4; i++) {
-            createCloud(Math.random() * area.clientWidth);
+        for (let i = 0; i < 5; i++) {
+            createCloud(Math.random() * window.innerWidth);
         }
         
         if (localStorage.getItem('darkMode') === '1') {
@@ -220,32 +202,34 @@ require_once '../../config.php';
         }
     }
     
-    function handleJump(e) {
-        if (e) e.preventDefault();
-        
+    function handleAction() {
         if (!running) {
             startGame();
-            return;
+        } else if (!isJumping) {
+            jump();
         }
+    }
+    
+    function jump() {
+        isJumping = true;
+        player.classList.add('jumping');
+        player.textContent = '🐻';
         
-        if (!isJumping) {
-            isJumping = true;
-            velocityY = JUMP_FORCE;
-            player.classList.add('jumping');
-            player.textContent = '🐻';
-            if (navigator.vibrate) navigator.vibrate(20);
-        }
+        setTimeout(() => {
+            isJumping = false;
+            player.classList.remove('jumping');
+        }, 500);
+        
+        if (navigator.vibrate) navigator.vibrate(20);
     }
     
     function startGame() {
         running = true;
-        isRunning = true;
         score = 0;
         dist = 0;
-        speed = 5;
+        speed = 6;
         isJumping = false;
-        playerY = 0;
-        velocityY = 0;
+        lastObstacleTime = Date.now();
         
         obstacles.forEach(o => o.el.remove());
         coins.forEach(c => c.el.remove());
@@ -257,9 +241,8 @@ require_once '../../config.php';
         document.getElementById('gameMessage').classList.remove('show');
         document.getElementById('hint').style.display = 'none';
         
-        player.style.bottom = GROUND_Y + '%';
+        player.style.bottom = '40%';
         player.classList.remove('jumping');
-        player.textContent = '🐻';
         
         if (animId) cancelAnimationFrame(animId);
         animId = requestAnimationFrame(update);
@@ -272,134 +255,111 @@ require_once '../../config.php';
         const el = document.createElement('div');
         el.className = 'obstacle';
         el.textContent = type;
+        el.style.left = area.clientWidth + 'px';
         area.appendChild(el);
         
-        obstacles.push({ el, x: area.clientWidth + 50 });
+        obstacles.push({ el, x: area.clientWidth });
     }
     
     function createCoin() {
         const el = document.createElement('div');
         el.className = 'coin';
         el.textContent = '⭐';
+        el.style.left = area.clientWidth + 'px';
+        el.style.bottom = (45 + Math.random() * 25) + '%';
         area.appendChild(el);
         
-        coins.push({ el, x: area.clientWidth + 30, y: 40 + Math.random() * 25 });
+        coins.push({ el, x: area.clientWidth });
     }
     
-    function createCloud(startX) {
+    function createCloud(x) {
         const el = document.createElement('div');
         el.className = 'cloud';
         el.textContent = '☁️';
-        el.style.left = startX + 'px';
-        el.style.top = (10 + Math.random() * 25) + '%';
+        el.style.left = x + 'px';
+        el.style.top = (10 + Math.random() * 30) + '%';
         area.appendChild(el);
         
-        clouds.push({ el, x: startX });
+        clouds.push({ el, x: x });
     }
     
     function update() {
         if (!running) return;
         
         const w = area.clientWidth;
-        const h = area.clientHeight;
-        
-        // 중력 적용
-        if (isJumping) {
-            playerY += velocityY;
-            velocityY += GRAVITY;
-            
-            // 착지
-            if (playerY >= 0) {
-                playerY = 0;
-                isJumping = false;
-                velocityY = 0;
-                player.classList.remove('jumping');
-            }
-            
-            player.style.bottom = (GROUND_Y - Math.abs(playerY)) + '%';
-        }
         
         // 거리 증가
         dist++;
         document.getElementById('dist').textContent = dist;
         
         // 점수 증가
-        if (dist % 3 === 0) {
+        if (dist % 5 === 0) {
             score++;
             document.getElementById('score').textContent = score;
         }
         
         // 속도 증가
-        if (dist % 300 === 0 && speed < 12) {
+        if (dist % 200 === 0 && speed < 15) {
             speed += 0.5;
         }
         
-        // 장애물 생성
-        if (Math.random() < 0.012 + (speed * 0.0005)) {
+        // 장애물 생성 (더 자주)
+        const now = Date.now();
+        if (now - lastObstacleTime > 1500 && Math.random() < 0.7) {
             createObstacle();
+            lastObstacleTime = now;
         }
         
         // 코인 생성
-        if (Math.random() < 0.018) {
+        if (Math.random() < 0.03) {
             createCoin();
         }
         
         // 구름 이동
         clouds.forEach(c => {
-            c.x -= speed * 0.2;
+            c.x -= speed * 0.3;
             if (c.x < -60) {
                 c.x = w + 60;
+                c.el.style.top = (10 + Math.random() * 30) + '%';
             }
             c.el.style.left = c.x + 'px';
         });
         
-        // 장애물 이동 및 충돌
+        // 장애물 이동
         obstacles.forEach(o => {
             o.x += speed;
             o.el.style.left = o.x + 'px';
             
             // 충돌 검사
-            const playerLeft = 60;
-            const playerRight = 100;
-            const playerBottom = GROUND_Y + (isJumping ? playerY : 0);
-            const playerTop = playerBottom + 40;
+            const pLeft = 50;
+            const pRight = 90;
+            const pBottom = 40;
+            const pTop = 80;
             
-            const obsLeft = o.x;
-            const obsRight = o.x + 40;
-            const obsBottom = GROUND_Y;
-            const obsTop = GROUND_Y + 40;
+            const oLeft = o.x;
+            const oRight = o.x + 40;
             
-            if (playerRight > obsLeft && playerLeft < obsRight &&
-                playerBottom < obsTop && playerTop > obsBottom) {
+            if (pRight > oLeft && pLeft < oRight) {
                 gameOver();
             }
             
             // 제거
-            if (o.x > w + 60) {
+            if (o.x > w + 50) {
                 o.el.remove();
                 obstacles = obstacles.filter(ob => ob !== o);
             }
         });
         
-        // 코인 이동 및 수집
+        // 코인 이동
         coins.forEach(c => {
             c.x += speed;
             c.el.style.left = c.x + 'px';
-            c.el.style.bottom = c.y + '%';
             
-            // 충돌
-            const playerLeft = 60;
-            const playerRight = 100;
-            const playerBottom = GROUND_Y + (isJumping ? playerY : 0);
-            const playerTop = playerBottom + 40;
+            // 수집
+            const pLeft = 50;
+            const pRight = 90;
             
-            const coinLeft = c.x;
-            const coinRight = c.x + 30;
-            const coinBottom = c.y;
-            const coinTop = coinBottom + 30;
-            
-            if (playerRight > coinLeft && playerLeft < coinRight &&
-                playerBottom < coinTop && playerTop > coinBottom) {
+            if (pRight > c.x && pLeft < c.x + 30) {
                 score += 50;
                 document.getElementById('score').textContent = score;
                 c.el.remove();
