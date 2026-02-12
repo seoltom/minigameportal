@@ -12,18 +12,22 @@ require_once '../config.php';
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>블로그 - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../css/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        header { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; }
-        header.dark { background: #1a1a2e !important; }
+        header { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; transition: background 0.3s, color 0.3s; }
+        header.dark { background: #1a1a2e; }
         header.dark .logo { color: #fff !important; }
         header.dark nav a { color: #ccc !important; }
         header.dark nav a.active { color: #4ade80 !important; }
-        .header-content { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 1200px; margin: 0 auto; }
-        .logo { font-size: 18px; font-weight: bold; color: #4f46e5; }
-        nav { display: flex; gap: 20px; }
-        nav a { font-size: 14px; color: #666; text-decoration: none; }
+        .header-content { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; max-width: 1200px; margin: 0 auto; width: 100%; box-sizing: border-box; }
+        .logo { font-size: 15px; font-weight: bold; color: #4f46e5; flex: 0 0 auto; }
+        nav { display: flex; gap: 10px; flex: 0 0 auto; align-items: center; }
+        nav a { font-size: 12px; color: #666; text-decoration: none; padding: 4px 8px; }
         nav a.active { color: #4f46e5; font-weight: 600; }
+        .theme-btn { background: none; border: 1px solid #ddd; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 14px; transition: all 0.3s; }
+        header.dark .theme-btn { border-color: #444; color: #fff; }
+        .theme-btn:hover { background: #f0f0f0; }
+        header.dark .theme-btn:hover { background: #333; }
+        
         body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
         body.dark-mode .post-item { background: rgba(255,255,255,0.1) !important; color: #fff !important; }
         body.dark-mode .post-title { color: #fff !important; }
@@ -37,8 +41,6 @@ require_once '../config.php';
         footer { padding: 20px; text-align: center; font-size: 14px; color: #888; }
         footer a { color: #888; }
         body.dark-mode footer, body.dark-mode footer a { color: #888 !important; }
-        .theme-btn { background: none; border: 1px solid #ddd; border-radius: 20px; padding: 6px 12px; cursor: pointer; font-size: 14px; }
-        body.dark-mode .theme-btn { border-color: #444; color: #fff; }
     </style>
 </head>
 <body>
