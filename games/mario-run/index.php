@@ -70,7 +70,6 @@ require_once '../../config.php';
             left: 50px;
             font-size: 50px;
             z-index: 10;
-            transition: bottom 0.5s ease-out;
         }
         #player.jumping {
             bottom: 65% !important;
@@ -165,6 +164,7 @@ require_once '../../config.php';
     let speed = 6;
     let animId = null;
     let nextObstacleTime = 0;
+    let jumpEndTime = 0;
     
     const obstacleTypes = ['🐌', '🐸', '🦋', '🐙'];
     
@@ -178,7 +178,6 @@ require_once '../../config.php';
             }
         });
         
-        // 구름 생성
         for (let i = 0; i < 5; i++) {
             createCloud(Math.random() * area.clientWidth);
         }
@@ -202,6 +201,8 @@ require_once '../../config.php';
     function jump() {
         isJumping = true;
         player.classList.add('jumping');
+        // 점프 종료 시간 (500ms 후)
+        jumpEndTime = Date.now() + 500;
         
         setTimeout(() => {
             isJumping = false;
@@ -217,7 +218,8 @@ require_once '../../config.php';
         dist = 0;
         speed = 6;
         isJumping = false;
-        nextObstacleTime = Date.now() + 500;
+        jumpEndTime = 0;
+        nextObstacleTime = Date.now() + 1000;
         
         obstacles.forEach(o => o.el.remove());
         coins.forEach(c => c.el.remove());
@@ -231,6 +233,7 @@ require_once '../../config.php';
         
         player.style.bottom = '40%';
         player.classList.remove('jumping');
+        player.textContent = '🐻';
         
         if (animId) cancelAnimationFrame(animId);
         animId = requestAnimationFrame(update);
@@ -275,29 +278,24 @@ require_once '../../config.php';
         const w = area.clientWidth;
         const now = Date.now();
         
-        // 거리 증가
         dist++;
         document.getElementById('dist').textContent = dist;
         
-        // 점수 증가
         if (dist % 5 === 0) {
             score++;
             document.getElementById('score').textContent = score;
         }
         
-        // 속도 증가
         if (dist % 200 === 0 && speed < 15) {
             speed += 0.5;
         }
         
-        // 장애물 생성 - 바로 생성!
+        // 장애물 생성
         if (now > nextObstacleTime) {
             createObstacle();
-            // 다음 장애물 시간 (랜덤 1-2초)
             nextObstacleTime = now + 1000 + Math.random() * 1000;
         }
         
-        // 코인 생성
         if (Math.random() < 0.02) {
             createCoin();
         }
@@ -305,9 +303,7 @@ require_once '../../config.php';
         // 구름 이동
         clouds.forEach(c => {
             c.x -= speed * 0.3;
-            if (c.x < -60) {
-                c.x = w + 60;
-            }
+            if (c.x < -60) c.x = w + 60;
             c.el.style.left = c.x + 'px';
         });
         
@@ -316,26 +312,30 @@ require_once '../../config.php';
             o.x -= speed;
             o.el.style.left = o.x + 'px';
             
-            // 충돌 검사 (플레이어 위치: left 50, width ~50)
+            // 충돌 검사 - 장애물이 플레이어 영역에 있음
+            // 플레이어: left 50-90, 바닥에서 40% 위치
+            // 점프중이면 바닥에서 65% 위치
             if (o.x < 100 && o.x > 40) {
-                if (!isJumping || parseInt(player.style.bottom) < 50) {
+                // 점프중인지 확인 (현재 시간이 jumpEndTime보다 작으면 점프중)
+                if (now < jumpEndTime) {
+                    // 점프중 - 안전
+                } else {
+                    // 점프안함 - 죽음
                     gameOver();
                 }
             }
             
-            // 제거
             if (o.x < -50) {
                 o.el.remove();
                 obstacles = obstacles.filter(ob => ob !== o);
             }
         });
         
-        // 코인 이동
+        // 코인 수집
         coins.forEach(c => {
             c.x -= speed;
             c.el.style.left = c.x + 'px';
             
-            // 수집
             if (c.x < 100 && c.x > 40) {
                 score += 50;
                 document.getElementById('score').textContent = score;
