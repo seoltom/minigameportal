@@ -18,7 +18,6 @@ require_once '../../config.php';
             flex-direction: column;
             touch-action: manipulation;
             user-select: none;
-            -webkit-user-select: none;
         }
         header { 
             background: #fff; 
@@ -40,80 +39,21 @@ require_once '../../config.php';
         nav { display: flex; gap: 10px; }
         nav a { font-size: 12px; color: #666; text-decoration: none; }
         
-        .game-info {
-            display: flex;
-            gap: 10px;
-            padding: 8px 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .info-box {
-            background: #bbada0;
-            color: #fff;
-            padding: 6px 15px;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 12px;
-        }
+        .game-info { display: flex; gap: 10px; padding: 8px 12px; justify-content: center; flex-wrap: wrap; }
+        .info-box { background: #bbada0; color: #fff; padding: 6px 15px; border-radius: 6px; text-align: center; font-size: 12px; }
         .info-value { font-size: 16px; font-weight: bold; }
         
-        .controls {
-            display: flex;
-            gap: 8px;
-            padding: 8px 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            background: #8f7a66;
-            color: #fff;
-        }
+        .controls { display: flex; gap: 8px; padding: 8px 12px; justify-content: center; flex-wrap: wrap; }
+        .btn { padding: 8px 16px; border: none; border-radius: 6px; font-size: 12px; cursor: pointer; background: #8f7a66; color: #fff; }
         
-        #game-board {
-            flex: 1;
-            display: grid;
-            gap: 2px;
-            padding: 10px;
-            justify-content: center;
-            align-content: center;
-        }
-        .tile {
-            background: #c9b99a;
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            cursor: pointer;
-            user-select: none;
-        }
+        #game-board { flex: 1; display: grid; gap: 2px; padding: 10px; justify-content: center; align-content: center; }
+        .tile { background: #c9b99a; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 20px; cursor: pointer; }
         .tile.selected { border: 3px solid #f59563; background: #f2b179; }
         .tile.matched { visibility: hidden; opacity: 0; }
-        .tile.hint { animation: blink 0.3s infinite; }
-        @keyframes blink { 50% { opacity: 0.5; }
         
-        .game-message {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
-            color: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            font-size: 20px;
-            text-align: center;
-            z-index: 2000;
-            display: none;
-        }
+        .game-message { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.9); color: #fff; padding: 30px; border-radius: 12px; font-size: 20px; text-align: center; z-index: 2000; display: none; }
         .game-message.show { display: block; }
         
-        /* 다크 모드 */
         body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
         body.dark-mode header { background: #1a1a2e !important; }
         body.dark-mode .logo { color: #fff !important; }
@@ -180,7 +120,8 @@ require_once '../../config.php';
             [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
         }
         
-        board = Array(rows + 2).fill().map(() => Array(cols + 2).fill(0));
+        // 패딩 포함 (경로 탐색용)
+        board = Array(rows + 2).fill().map(() => Array(cols + 2).fill(null));
         let idx = 0;
         for (let i = 1; i <= rows; i++) {
             for (let j = 1; j <= cols; j++) {
@@ -199,32 +140,39 @@ require_once '../../config.php';
         const container = document.getElementById('game-board');
         container.innerHTML = '';
         
-        const containerWidth = container.clientWidth - 20;
-        const containerHeight = container.clientHeight - 20;
+        const containerWidth = Math.min(window.innerWidth - 20, 450);
+        const containerHeight = window.innerHeight - 150;
         const tileW = Math.floor((containerWidth - (cols - 1) * 2) / cols);
         const tileH = Math.floor((containerHeight - (rows - 1) * 2) / rows);
-        const size = Math.min(tileW, tileH, 45);
+        const size = Math.min(tileW, tileH, 42);
         
         container.style.gridTemplateColumns = `repeat(${cols}, ${size}px)`;
         
         for (let i = 1; i <= rows; i++) {
             for (let j = 1; j <= cols; j++) {
                 const tile = document.createElement('div');
-                tile.className = 'tile' + (selected && selected.r === i && selected.c === j ? ' selected' : '') + (board[i][j] === 0 ? ' matched' : '');
+                const isSelected = selected && selected.r === i && selected.c === j;
+                const isMatched = board[i][j] === null;
+                
+                tile.className = 'tile' + (isSelected ? ' selected' : '') + (isMatched ? ' matched' : '');
                 tile.textContent = board[i][j] || '';
                 tile.style.width = size + 'px';
                 tile.style.height = Math.floor(size * 1.2) + 'px';
                 tile.style.fontSize = Math.floor(size * 0.7) + 'px';
                 tile.dataset.r = i;
                 tile.dataset.c = j;
-                tile.onclick = () => clickTile(i, j);
+                
+                if (!isMatched) {
+                    tile.onclick = () => clickTile(i, j);
+                }
+                
                 container.appendChild(tile);
             }
         }
     }
     
     function clickTile(r, c) {
-        if (!board[r][c] || timeLeft <= 0) return;
+        if (board[r][c] === null || timeLeft <= 0) return;
         
         // 같은 타일 선택 해제
         if (selected && selected.r === r && selected.c === c) {
@@ -236,64 +184,89 @@ require_once '../../config.php';
         if (!selected) {
             selected = {r, c};
             renderBoard();
-        } else if (board[selected.r][selected.c] === board[r][c]) {
-            const path = findPath(selected.r, selected.c, r, c);
-            if (path) {
-                score += 100;
-                pairsLeft--;
-                board[selected.r][selected.c] = 0;
-                board[r][c] = 0;
-                if (navigator.vibrate) navigator.vibrate(30);
-                
-                setTimeout(() => {
-                    renderBoard();
-                    updateStats();
-                    checkEnd();
-                }, 200);
+        } else {
+            // 같은 값인지 확인
+            if (board[selected.r][selected.c] === board[r][c]) {
+                // 경로가 있는지 확인
+                if (canConnect(selected.r, selected.c, r, c)) {
+                    // 매칭 성공 - 타일 제거
+                    board[selected.r][selected.c] = null;
+                    board[r][c] = null;
+                    score += 100;
+                    pairsLeft--;
+                    
+                    if (navigator.vibrate) navigator.vibrate(30);
+                    
+                    setTimeout(() => {
+                        renderBoard();
+                        updateStats();
+                        checkEnd();
+                    }, 200);
+                }
+                // 경로가 없든 있든 선택 해제
                 selected = null;
+                renderBoard();
             } else {
+                // 다른 값 - 새로운 타일 선택
                 selected = {r, c};
                 renderBoard();
             }
-        } else {
-            selected = {r, c};
-            renderBoard();
         }
     }
     
-    function findPath(r1, c1, r2, c2) {
-        const dirs = [[-1,0],[1,0],[0,-1],[0,1]];
-        const q = [{r:r1,c:c1,path:[]}];
-        const v = new Set([`${r1},${c1}`]);
+    // 경로 찾기 - 0(빈칸)으로 이동 가능
+    function canConnect(r1, c1, r2, c2) {
+        // 같은 위치면 false
+        if (r1 === r2 && c1 === c2) return false;
         
-        while (q.length) {
-            const {r,c,p} = q.shift();
-            if (r === r2 && c === c2) return p;
-            for (const [dr,dc] of dirs) {
-                const nr = r + dr, nc = c + dc;
+        // 다른 값이면 false
+        if (board[r1][c1] !== board[r2][c2]) return false;
+        
+        const dirs = [[-1,0], [1,0], [0,-1], [0,1]];
+        const queue = [{r:r1, c:c1, dist:0}];
+        const visited = new Set();
+        visited.add(r1 + ',' + c1);
+        
+        while (queue.length > 0) {
+            const {r, c, dist} = queue.shift();
+            
+            if (r === r2 && c === c2) return true;
+            if (dist > 20) continue; // 너무 긴 경로는 무시
+            
+            for (const [dr, dc] of dirs) {
+                const nr = r + dr;
+                const nc = c + dc;
+                
+                // 범위 체크 (패딩 포함)
                 if (nr < 0 || nr > rows + 1 || nc < 0 || nc > cols + 1) continue;
-                if (v.has(`${nr},${nc}`)) continue;
-                if (board[nr][nc] !== 0 && !(nr === r2 && nc === c2)) continue;
-                v.add(`${nr},${nc}`);
-                q.push({r:nr,c:nc,path:[...p,{r:nr,c:nc}]});
+                if (visited.has(nr + ',' + nc)) continue;
+                
+                // 빈칸이거나 목적지
+                if (board[nr][nc] === null || (nr === r2 && nc === c2)) {
+                    visited.add(nr + ',' + nc);
+                    queue.push({r: nr, c: nc, dist: dist + 1});
+                }
             }
         }
-        return null;
+        return false;
     }
     
     function showHint() {
         if (timeLeft <= 0) return;
+        
         for (let i = 1; i <= rows; i++) {
             for (let j = 1; j <= cols; j++) {
                 if (!board[i][j]) continue;
                 for (let ii = 1; ii <= rows; ii++) {
                     for (let jj = 1; jj <= cols; jj++) {
-                        if ((i !== ii || j !== jj) && board[i][j] === board[ii][jj] && findPath(i,j,ii,jj)) {
-                            document.querySelector(`.tile[data-r="${i}"][data-c="${j}"]`)?.classList.add('hint');
-                            document.querySelector(`.tile[data-r="${ii}"][data-c="${jj}"]`)?.classList.add('hint');
+                        if ((i !== ii || j !== jj) && board[i][j] === board[ii][jj] && canConnect(i,j,ii,jj)) {
+                            const t1 = document.querySelector(`.tile[data-r="${i}"][data-c="${j}"]`);
+                            const t2 = document.querySelector(`.tile[data-r="${ii}"][data-c="${jj}"]`);
+                            if (t1) t1.style.background = '#f59563';
+                            if (t2) t2.style.background = '#f59563';
                             setTimeout(() => {
-                                document.querySelector(`.tile[data-r="${i}"][data-c="${j}"]`)?.classList.remove('hint');
-                                document.querySelector(`.tile[data-r="${ii}"][data-c="${jj}"]`)?.classList.remove('hint');
+                                if (t1) t1.style.background = '';
+                                if (t2) t2.style.background = '';
                             }, 800);
                             return;
                         }
@@ -307,11 +280,13 @@ require_once '../../config.php';
         if (pairsLeft === 0) {
             score += timeLeft * 10;
             if (navigator.vibrate) navigator.vibrate([100,50,100]);
-            showMsg('🎉 클리어!<br>점수: ' + score);
+            document.getElementById('messageText').innerHTML = '🎉 클리어!<br>점수: ' + score;
+            document.getElementById('gameMessage').classList.add('show');
             clearInterval(timer);
         } else if (timeLeft <= 0) {
             if (navigator.vibrate) navigator.vibrate(200);
-            showMsg('😢 시간 초과!');
+            document.getElementById('messageText').innerHTML = '😢 시간 초과!';
+            document.getElementById('gameMessage').classList.add('show');
             clearInterval(timer);
         }
     }
@@ -329,12 +304,7 @@ require_once '../../config.php';
         document.getElementById('score').textContent = score;
         document.getElementById('pairs').textContent = pairsLeft;
         const m = Math.floor(timeLeft / 60), s = timeLeft % 60;
-        document.getElementById('time').textContent = m + ':' + s.toString().padStart(2,'0');
-    }
-    
-    function showMsg(text) {
-        document.getElementById('messageText').innerHTML = text;
-        document.getElementById('gameMessage').classList.add('show');
+        document.getElementById('time').textContent = m + ':' + s.toString().padStart(2, '0');
     }
     
     window.onresize = renderBoard;
