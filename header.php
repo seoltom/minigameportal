@@ -95,6 +95,11 @@ function setTheme(dark) {
     document.querySelectorAll('header').forEach(h => {
         h.classList.toggle('dark', dark);
     });
+    if (dark) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
     localStorage.setItem('darkMode', dark ? '1' : '0');
 }
 
@@ -108,6 +113,29 @@ if (localStorage.getItem('darkMode') === '1') {
     setTheme(true);
 }
 </script>
+
+<style>
+/* 다크 모드 전체 적용 */
+body.dark-mode {
+    background: #1a1a2e !important;
+    color: #fff !important;
+}
+body.dark-mode .game-area,
+body.dark-mode .game-container,
+body.dark-mode #game-board,
+body.dark-mode .game-info,
+body.dark-mode .controls {
+    background: transparent !important;
+}
+body.dark-mode .score-box,
+body.dark-mode .info-box,
+body.dark-mode .info-item {
+    background: rgba(255,255,255,0.1) !important;
+}
+body.dark-mode .score-label {
+    color: #ccc !important;
+}
+</style>
 
 <header>
     <div class="header-content">
