@@ -14,8 +14,13 @@ require_once '../../config.php';
     <title>2048 - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
     <style>
-        html, body { overflow: hidden; height: 100%; margin: 0; padding: 0; background: #faf8ef; }
+        html, body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
+        body { overflow: hidden; height: 100%; margin: 0; padding: 0; background: #faf8ef; }
+        body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
         body { display: flex; flex-direction: column; height: 100%; touch-action: manipulation; user-select: none; }
+        body.dark-mode header { background: #1a1a2e !important; }
+        body.dark-mode .logo { color: #fff !important; }
+        body.dark-mode nav a { color: #ccc !important; }
         header { background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
         .header-content { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 1200px; margin: 0 auto; }
         .logo { font-size: 18px; font-weight: bold; color: #4f46e5; }
@@ -89,5 +94,10 @@ require_once '../../config.php';
     </div>
     <footer><p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p></footer>
     <script src="game.js"></script>
+    <script>
+    if (localStorage.getItem('darkMode') === '1') {
+        document.body.classList.add('dark-mode');
+    }
+    </script>
 </body>
 </html>

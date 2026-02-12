@@ -9,7 +9,9 @@ require_once '../../config.php';
     <title>Memory - <?= SITE_NAME ?></title>
     <link rel="stylesheet" href="../../css/style.css">
     <style>
-        html, body { overflow: hidden; height: 100%; margin: 0; background: linear-gradient(135deg, #667eea, #764ba2); }
+        html, body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
+        body { overflow: hidden; height: 100%; margin: 0; background: linear-gradient(135deg, #667eea, #764ba2); }
+        body.dark-mode { background: #1a1a2e !important; color: #fff !important; }
         body { display: flex; flex-direction: column; height: 100%; touch-action: manipulation; user-select: none; }
         header { background: rgba(255,255,255,0.9); box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; flex-shrink: 0; }
         .header-content { display: flex; justify-content: space-between; align-items: center; padding: 10px 20px; max-width: 1200px; margin: 0 auto; }
@@ -50,5 +52,10 @@ require_once '../../config.php';
     </main>
     <footer><p>© <?= date('Y') ?> <a href="https://tomseol.pe.kr/" target="_blank">tomseol.pe.kr</a></p></footer>
     <script src="game.js"></script>
+    <script>
+    if (localStorage.getItem('darkMode') === '1') {
+        document.body.classList.add('dark-mode');
+    }
+    </script>
 </body>
 </html>
