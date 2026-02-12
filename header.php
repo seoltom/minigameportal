@@ -28,22 +28,26 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px 20px;
+    padding: 8px 15px;
     max-width: 1200px;
     margin: 0 auto;
+    flex-wrap: nowrap;
+    gap: 10px;
 }
 .logo {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     color: #4f46e5;
     white-space: nowrap;
+    flex-shrink: 0;
 }
 nav {
     display: flex;
-    gap: 15px;
+    gap: 12px;
+    flex-shrink: 0;
 }
 nav a {
-    font-size: 14px;
+    font-size: 13px;
     color: #666;
     text-decoration: none;
     white-space: nowrap;
