@@ -13,7 +13,7 @@ require_once '../../config.php';
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html, body { height: 100%; overflow: hidden; }
         body { 
-            background: #5c94fc;
+            background: #87CEEB;
             display: flex;
             flex-direction: column;
             touch-action: manipulation;
@@ -44,22 +44,22 @@ require_once '../../config.php';
             gap: 10px;
             padding: 8px 12px;
             justify-content: center;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.2);
         }
         .info-box {
-            background: rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.2);
             color: #fff;
             padding: 6px 15px;
             border-radius: 6px;
             text-align: center;
             font-size: 12px;
         }
-        .info-value { font-size: 16px; font-weight: bold; color: #ffd700; }
+        .info-value { font-size: 16px; font-weight: bold; color: #fff; }
         
         #game-area {
             flex: 1;
             position: relative;
-            background: linear-gradient(to bottom, #5c94fc 0%, #5c94fc 60%, #8B4513 60%, #8B4513 100%);
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 65%, #228B22 65%, #006400 100%);
             overflow: hidden;
         }
         
@@ -68,52 +68,53 @@ require_once '../../config.php';
             bottom: 0;
             left: 0;
             right: 0;
-            height: 40%;
-            background: linear-gradient(to bottom, #654321 0%, #8B4513 100%);
+            height: 35%;
         }
         
-        #ground::before {
-            content: '';
+        #player {
             position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 15px;
-            background: linear-gradient(to bottom, #228B22 0%, #32CD32 100%);
-        }
-        
-        #mario {
-            position: absolute;
-            bottom: 40%;
-            left: 50px;
-            font-size: 40px;
+            bottom: 35%;
+            left: 60px;
+            font-size: 45px;
             z-index: 10;
-            transition: bottom 0.1s;
+            transition: none;
+            animation: run 0.3s infinite alternate;
         }
-        #mario.jumping { bottom: 45% !important; }
+        #player.jumping {
+            animation: jump-anim 0.6s ease-out;
+        }
+        @keyframes run {
+            from { transform: translateY(0); }
+            to { transform: translateY(-3px); }
+        }
+        @keyframes jump-anim {
+            0% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-120px) rotate(15deg); }
+            100% { transform: translateY(0) rotate(0deg); }
+        }
         
         .obstacle {
             position: absolute;
-            bottom: 40%;
-            font-size: 35px;
+            bottom: 35%;
+            font-size: 40px;
             z-index: 5;
         }
         
         .coin {
             position: absolute;
-            font-size: 25px;
+            font-size: 30px;
             z-index: 5;
-            animation: spin 0.5s infinite;
+            animation: spin 0.4s infinite alternate;
         }
         @keyframes spin {
-            0%, 100% { transform: rotateY(0deg); }
-            50% { transform: rotateY(180deg); }
+            from { transform: scaleX(1); }
+            to { transform: scaleX(0.7); }
         }
         
         .cloud {
             position: absolute;
-            font-size: 40px;
-            opacity: 0.8;
+            font-size: 50px;
+            opacity: 0.9;
         }
         
         .game-message {
@@ -121,10 +122,10 @@ require_once '../../config.php';
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.85);
             color: #fff;
             padding: 30px;
-            border-radius: 12px;
+            border-radius: 15px;
             font-size: 20px;
             text-align: center;
             z-index: 2000;
@@ -137,15 +138,21 @@ require_once '../../config.php';
         body.dark-mode .logo { color: #fff !important; }
         body.dark-mode nav a { color: #ccc !important; }
         
-        #controls-hint {
+        #hint {
             position: absolute;
-            bottom: 20%;
+            bottom: 45%;
             left: 50%;
             transform: translateX(-50%);
             color: #fff;
-            font-size: 14px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
-            z-index: 5;
+            font-size: 16px;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            z-index: 20;
+            animation: pulse 1s infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
         }
     </style>
 </head>
@@ -167,8 +174,8 @@ require_once '../../config.php';
     
     <div id="game-area">
         <div id="ground"></div>
-        <div id="mario">🏃</div>
-        <div id="controls-hint">화면을 터치하여 점프!</div>
+        <div id="player">🐻</div>
+        <div id="hint">화면을 터치하여 시작!</div>
     </div>
     
     <div class="game-message" id="gameMessage">
@@ -178,15 +185,19 @@ require_once '../../config.php';
     
     <script>
     const area = document.getElementById('game-area');
-    const mario = document.getElementById('mario');
+    const player = document.getElementById('player');
     
     let score = 0, dist = 0;
-    let isJumping = false, jumpHeight = 0;
+    let isJumping = false, isRunning = false;
+    let playerY = 0; // 0 = ground, 1 = jumping
+    let velocityY = 0;
     let running = false;
     let obstacles = [], coins = [], clouds = [];
-    let speed = 6;
+    let speed = 5;
     let animId = null;
-    let jumpTimer = null;
+    const GRAVITY = 0.8;
+    const JUMP_FORCE = -15;
+    const GROUND_Y = 35;
     
     function init() {
         area.addEventListener('touchstart', handleJump, { passive: false });
@@ -199,7 +210,7 @@ require_once '../../config.php';
         });
         
         // 구름 생성
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 4; i++) {
             createCloud(Math.random() * area.clientWidth);
         }
         
@@ -219,39 +230,22 @@ require_once '../../config.php';
         
         if (!isJumping) {
             isJumping = true;
-            mario.classList.add('jumping');
-            mario.textContent = '🦘';
-            
-            let jumpProgress = 0;
-            const jumpDuration = 400;
-            const startTime = Date.now();
-            
-            jumpTimer = setInterval(() => {
-                const elapsed = Date.now() - startTime;
-                const progress = elapsed / jumpDuration;
-                
-                if (progress >= 1) {
-                    clearInterval(jumpTimer);
-                    isJumping = false;
-                    mario.classList.remove('jumping');
-                    mario.textContent = '🏃';
-                    mario.style.bottom = '40%';
-                } else {
-                    // 포물선 점프
-                    const jumpArc = Math.sin(progress * Math.PI) * 100;
-                    mario.style.bottom = (40 + jumpArc / area.clientHeight * 100) + '%';
-                }
-            }, 16);
-            
-            if (navigator.vibrate) navigator.vibrate(30);
+            velocityY = JUMP_FORCE;
+            player.classList.add('jumping');
+            player.textContent = '🐻';
+            if (navigator.vibrate) navigator.vibrate(20);
         }
     }
     
     function startGame() {
         running = true;
+        isRunning = true;
         score = 0;
         dist = 0;
-        speed = 6;
+        speed = 5;
+        isJumping = false;
+        playerY = 0;
+        velocityY = 0;
         
         obstacles.forEach(o => o.el.remove());
         coins.forEach(c => c.el.remove());
@@ -261,22 +255,23 @@ require_once '../../config.php';
         document.getElementById('score').textContent = score;
         document.getElementById('dist').textContent = dist;
         document.getElementById('gameMessage').classList.remove('show');
-        document.getElementById('controls-hint').style.display = 'none';
+        document.getElementById('hint').style.display = 'none';
         
-        mario.style.bottom = '40%';
-        mario.textContent = '🏃';
+        player.style.bottom = GROUND_Y + '%';
+        player.classList.remove('jumping');
+        player.textContent = '🐻';
         
+        if (animId) cancelAnimationFrame(animId);
         animId = requestAnimationFrame(update);
     }
     
     function createObstacle() {
-        const types = ['🌵', '🪨', '👺'];
+        const types = ['🐌', '🐸', '🦋', '🐙'];
         const type = types[Math.floor(Math.random() * types.length)];
         
         const el = document.createElement('div');
         el.className = 'obstacle';
         el.textContent = type;
-        el.style.right = '-50px';
         area.appendChild(el);
         
         obstacles.push({ el, x: area.clientWidth + 50 });
@@ -285,12 +280,10 @@ require_once '../../config.php';
     function createCoin() {
         const el = document.createElement('div');
         el.className = 'coin';
-        el.textContent = '🪙';
-        el.style.right = '-30px';
-        el.style.bottom = (45 + Math.random() * 30) + '%';
+        el.textContent = '⭐';
         area.appendChild(el);
         
-        coins.push({ el, x: area.clientWidth + 30 });
+        coins.push({ el, x: area.clientWidth + 30, y: 40 + Math.random() * 25 });
     }
     
     function createCloud(startX) {
@@ -298,7 +291,7 @@ require_once '../../config.php';
         el.className = 'cloud';
         el.textContent = '☁️';
         el.style.left = startX + 'px';
-        el.style.top = (20 + Math.random() * 30) + '%';
+        el.style.top = (10 + Math.random() * 25) + '%';
         area.appendChild(el);
         
         clouds.push({ el, x: startX });
@@ -310,99 +303,111 @@ require_once '../../config.php';
         const w = area.clientWidth;
         const h = area.clientHeight;
         
+        // 중력 적용
+        if (isJumping) {
+            playerY += velocityY;
+            velocityY += GRAVITY;
+            
+            // 착지
+            if (playerY >= 0) {
+                playerY = 0;
+                isJumping = false;
+                velocityY = 0;
+                player.classList.remove('jumping');
+            }
+            
+            player.style.bottom = (GROUND_Y - Math.abs(playerY)) + '%';
+        }
+        
         // 거리 증가
         dist++;
         document.getElementById('dist').textContent = dist;
         
         // 점수 증가
-        if (dist % 5 === 0) {
+        if (dist % 3 === 0) {
             score++;
             document.getElementById('score').textContent = score;
         }
         
         // 속도 증가
-        if (dist % 200 === 0 && speed < 15) {
+        if (dist % 300 === 0 && speed < 12) {
             speed += 0.5;
         }
         
         // 장애물 생성
-        if (Math.random() < 0.015) {
+        if (Math.random() < 0.012 + (speed * 0.0005)) {
             createObstacle();
         }
         
         // 코인 생성
-        if (Math.random() < 0.02) {
+        if (Math.random() < 0.018) {
             createCoin();
         }
         
         // 구름 이동
         clouds.forEach(c => {
-            c.x -= speed * 0.3;
-            if (c.x < -50) {
-                c.x = w + 50;
-                c.el.style.top = (20 + Math.random() * 30) + '%';
+            c.x -= speed * 0.2;
+            if (c.x < -60) {
+                c.x = w + 60;
             }
             c.el.style.left = c.x + 'px';
         });
         
-        // 장애물 이동
+        // 장애물 이동 및 충돌
         obstacles.forEach(o => {
             o.x += speed;
-            o.el.style.right = (w - o.x) + 'px';
+            o.el.style.left = o.x + 'px';
             
             // 충돌 검사
-            const marioRect = {
-                left: 50,
-                right: 90,
-                bottom: getMarioBottom(),
-                top: getMarioBottom() + 40
-            };
+            const playerLeft = 60;
+            const playerRight = 100;
+            const playerBottom = GROUND_Y + (isJumping ? playerY : 0);
+            const playerTop = playerBottom + 40;
             
-            const obsLeft = o.x - 35;
-            const obsRight = o.x;
-            const obsBottom = h * 0.4;
-            const obsTop = obsBottom + 35;
+            const obsLeft = o.x;
+            const obsRight = o.x + 40;
+            const obsBottom = GROUND_Y;
+            const obsTop = GROUND_Y + 40;
             
-            if (marioRect.right > obsLeft && marioRect.left < obsRight &&
-                marioRect.bottom < obsTop && marioRect.top > obsBottom) {
+            if (playerRight > obsLeft && playerLeft < obsRight &&
+                playerBottom < obsTop && playerTop > obsBottom) {
                 gameOver();
             }
             
             // 제거
-            if (o.x > w + 100) {
+            if (o.x > w + 60) {
                 o.el.remove();
                 obstacles = obstacles.filter(ob => ob !== o);
             }
         });
         
-        // 코인 이동
+        // 코인 이동 및 수집
         coins.forEach(c => {
             c.x += speed;
-            c.el.style.right = (w - c.x) + 'px';
+            c.el.style.left = c.x + 'px';
+            c.el.style.bottom = c.y + '%';
             
-            // 충돌 검사
-            const marioRect = {
-                left: 50,
-                right: 90,
-                bottom: getMarioBottom(),
-                top: getMarioBottom() + 40
-            };
+            // 충돌
+            const playerLeft = 60;
+            const playerRight = 100;
+            const playerBottom = GROUND_Y + (isJumping ? playerY : 0);
+            const playerTop = playerBottom + 40;
             
-            const coinLeft = c.x - 20;
-            const coinRight = c.x + 10;
-            const coinBottom = parseFloat(c.el.style.bottom) / 100 * h;
-            const coinTop = coinBottom + 25;
+            const coinLeft = c.x;
+            const coinRight = c.x + 30;
+            const coinBottom = c.y;
+            const coinTop = coinBottom + 30;
             
-            if (marioRect.right > coinLeft && marioRect.left < coinRight &&
-                marioRect.bottom < coinTop && marioRect.top > coinBottom) {
+            if (playerRight > coinLeft && playerLeft < coinRight &&
+                playerBottom < coinTop && playerTop > coinBottom) {
                 score += 50;
                 document.getElementById('score').textContent = score;
                 c.el.remove();
                 coins = coins.filter(co => co !== c);
-                if (navigator.vibrate) navigator.vibrate(20);
+                if (navigator.vibrate) navigator.vibrate(15);
             }
             
-            if (c.x > w + 100) {
+            if (c.x > w + 40) {
                 c.el.remove();
                 coins = coins.filter(co => co !== c);
             }
@@ -411,23 +416,18 @@ require_once '../../config.php';
         animId = requestAnimationFrame(update);
     }
     
-    function getMarioBottom() {
-        return h * 0.4;
-    }
-    
     function gameOver() {
         running = false;
         cancelAnimationFrame(animId);
-        clearInterval(jumpTimer);
         
-        mario.textContent = '😵';
+        player.textContent = '😵';
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
         
         const best = localStorage.getItem('marioBest') || 0;
         let msg = `💀 게임 오버!<br>점수: ${score}<br>거리: ${dist}m`;
         if (score > best) {
             localStorage.setItem('marioBest', score);
-            msg += '<br>🎉 최고 점수!';
+            msg += '<br>🏆 최고 점수!';
         }
         
         document.getElementById('messageText').innerHTML = msg;
