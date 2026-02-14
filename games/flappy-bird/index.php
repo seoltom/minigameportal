@@ -135,87 +135,122 @@ require_once '../../config.php';
     </div>
     
     <script>
+    // ========== 효과음 시스템 ==========
+    const SoundSystem = {
+        ctx: null,
+        enabled: false,
+        
+        init: function() {
+            try {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.enabled = true;
+                console.log('🔊 오디오 초기화 완료');
+            } catch(e) {
+                console.log('❌ 오디오 지원 안됨:', e);
+            }
+        },
+        
+        play: function(type) {
+            if (!this.enabled || !this.ctx) return;
+            
+            const ctx = this.ctx;
+            const now = ctx.currentTime;
+            
+            // 오디오 컨텍스트가 suspended면 resume
+            if (ctx.state === 'suspended') {
+                ctx.resume().then(() => this._playSound(type));
+                return;
+            }
+            
+            this._playSound(type);
+        },
+        
+        _playSound: function(type) {
+            const ctx = this.ctx;
+            const now = ctx.currentTime;
+            
+            switch(type) {
+                case 'jump':
+                    // 빠직! - 짧은 오실레이터
+                    const osc1 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    osc1.connect(gain1);
+                    gain1.connect(ctx.destination);
+                    osc1.frequency.setValueAtTime(450, now);
+                    osc1.frequency.exponentialRampToValueAtTime(650, now + 0.08);
+                    gain1.gain.setValueAtTime(0.4, now);
+                    gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                    osc1.start(now);
+                    osc1.stop(now + 0.1);
+                    break;
+                    
+                case 'score':
+                    // 딩! - 높은 순수음
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.connect(gain2);
+                    gain2.connect(ctx.destination);
+                    osc2.type = 'sine';
+                    osc2.frequency.setValueAtTime(1000, now);
+                    osc2.frequency.setValueAtTime(1500, now + 0.05);
+                    gain2.gain.setValueAtTime(0.3, now);
+                    gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc2.start(now);
+                    osc2.stop(now + 0.15);
+                    break;
+                    
+                case 'hit':
+                    // 꽝! - 낮은 충돌음
+                    const osc3 = ctx.createOscillator();
+                    const gain3 = ctx.createGain();
+                    osc3.connect(gain3);
+                    gain3.connect(ctx.destination);
+                    osc3.type = 'square';
+                    osc3.frequency.setValueAtTime(150, now);
+                    osc3.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+                    gain3.gain.setValueAtTime(0.3, now);
+                    gain3.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc3.start(now);
+                    osc3.stop(now + 0.15);
+                    break;
+                    
+                case 'die':
+                    // 투욱... - 죽음음
+                    const osc4 = ctx.createOscillator();
+                    const gain4 = ctx.createGain();
+                    osc4.connect(gain4);
+                    gain4.connect(ctx.destination);
+                    osc4.type = 'sawtooth';
+                    osc4.frequency.setValueAtTime(400, now);
+                    osc4.frequency.exponentialRampToValueAtTime(30, now + 0.5);
+                    gain4.gain.setValueAtTime(0.25, now);
+                    gain4.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc4.start(now);
+                    osc4.stop(now + 0.5);
+                    break;
+                    
+                case 'start':
+                    // 삐용삐용! - 시작음
+                    const osc5 = ctx.createOscillator();
+                    const gain5 = ctx.createGain();
+                    osc5.connect(gain5);
+                    gain5.connect(ctx.destination);
+                    osc5.type = 'sine';
+                    osc5.frequency.setValueAtTime(300, now);
+                    osc5.frequency.setValueAtTime(500, now + 0.1);
+                    osc5.frequency.setValueAtTime(700, now + 0.2);
+                    gain5.gain.setValueAtTime(0.25, now);
+                    gain5.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc5.start(now);
+                    osc5.stop(now + 0.3);
+                    break;
+            }
+        }
+    };
+    
+    // ========== 게임 ==========
     const area = document.getElementById('game-area');
     const bird = document.getElementById('bird');
-    
-    // 오디오 컨텍스트
-    let audioCtx = null;
-    
-    function initAudio() {
-        if (!audioCtx) {
-            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        }
-    }
-    
-    // 효과음 재생 함수
-    function playSound(type) {
-        if (!audioCtx) initAudio();
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        
-        switch(type) {
-            case 'jump':
-                // 빠직! 소리
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
-                break;
-                
-            case 'score':
-                // 동전 먹은 듯한 소리
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.05);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.1);
-                break;
-                
-            case 'hit':
-                // 부딪히는 소리
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.2);
-                break;
-                
-            case 'die':
-                // 죽는 소리
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.4);
-                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.4);
-                break;
-                
-            case 'start':
-                // 시작 효과음
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime + 0.1);
-                osc.frequency.setValueAtTime(700, audioCtx.currentTime + 0.2);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.3);
-                break;
-        }
-    }
     
     let birdX = 80;
     let birdY = 200;
@@ -232,6 +267,19 @@ require_once '../../config.php';
     let currentBirdIdx = 0;
     
     function init() {
+        // 모든 터치/클릭에 오디오 초기화
+        const initAudio = () => {
+            SoundSystem.init();
+            // 오디오 초기화 후 이벤트 리스너 제거
+            document.removeEventListener('click', initAudio);
+            area.removeEventListener('touchstart', initAudio);
+            area.removeEventListener('mousedown', initAudio);
+        };
+        
+        document.addEventListener('click', initAudio);
+        area.addEventListener('touchstart', initAudio, { passive: false });
+        area.addEventListener('mousedown', initAudio);
+        
         area.addEventListener('touchstart', handleJump, { passive: false });
         area.addEventListener('mousedown', handleJump);
         document.addEventListener('keydown', (e) => {
@@ -257,13 +305,12 @@ require_once '../../config.php';
     
     function handleJump(e) {
         if (e) e.preventDefault();
-        initAudio(); // 오디오 초기화
         
         if (!running) {
             startGame();
         } else {
             birdVY = jumpForce;
-            playSound('jump');
+            SoundSystem.play('jump');
             if (navigator.vibrate) navigator.vibrate(10);
         }
     }
@@ -275,13 +322,13 @@ require_once '../../config.php';
         bird.style.top = birdY + 'px';
         bird.style.transform = 'rotate(0deg)';
         
-        document.getElementById('messageText').innerHTML = '🐦 날개짓<br><br>화면을 터치하여 시작!<br><br><small>🔊 효과음 있음</small>';
+        document.getElementById('messageText').innerHTML = '🐦 날개짓<br><br>화면을 터치하여 시작!<br><br><small>🔊 터치하면 소리 나옵니다</small>';
         document.getElementById('gameMessage').classList.add('show');
     }
     
     function startGame() {
-        initAudio();
-        playSound('start');
+        SoundSystem.init();
+        SoundSystem.play('start');
         
         running = true;
         score = 0;
@@ -362,7 +409,7 @@ require_once '../../config.php';
         bird.style.top = birdY + 'px';
         
         if (birdY < 0 || birdY + birdSize > groundY) {
-            playSound('die');
+            SoundSystem.play('die');
             gameOver();
             return;
         }
@@ -388,7 +435,7 @@ require_once '../../config.php';
                 p.passed = true;
                 score++;
                 document.getElementById('score').textContent = score;
-                playSound('score');
+                SoundSystem.play('score');
                 if (navigator.vibrate) navigator.vibrate(8);
             }
             
@@ -401,7 +448,7 @@ require_once '../../config.php';
             
             if (birdRight > pipeLeft && birdLeft < pipeRight) {
                 if (birdTop < p.topHeight || birdBottom > p.bottomY) {
-                    playSound('hit');
+                    SoundSystem.play('hit');
                     gameOver();
                     return;
                 }
