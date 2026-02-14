@@ -56,54 +56,39 @@ require_once '../../config.php';
         }
         .info-value { font-size: 16px; font-weight: bold; color: #ffd700; }
         
-        .controls {
-            display: flex;
-            gap: 8px;
-            padding: 8px 12px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 6px;
-            font-size: 12px;
-            cursor: pointer;
-            background: #8f7a66;
-            color: #fff;
-        }
-        
         #game-area {
             flex: 1;
             position: relative;
-            background: #0a0a15;
+            background: #0f0f1a;
             overflow: hidden;
         }
         
-        #snake-canvas {
+        canvas {
             display: block;
+            width: 100%;
+            height: 100%;
         }
         
         .direction-pad {
             display: grid;
-            grid-template-columns: repeat(3, 50px);
-            grid-template-rows: repeat(3, 50px);
-            gap: 5px;
-            padding: 10px;
-            justify-content: center;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            padding: 12px;
+            background: rgba(0,0,0,0.2);
         }
         .dir-btn {
-            background: rgba(255,255,255,0.1);
-            border: 2px solid rgba(255,255,255,0.2);
-            border-radius: 8px;
+            background: rgba(255,255,255,0.15);
+            border: 2px solid rgba(255,255,255,0.25);
+            border-radius: 10px;
             color: #fff;
-            font-size: 20px;
+            font-size: 24px;
+            padding: 15px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .dir-btn:active { background: rgba(255,255,255,0.2); }
+        .dir-btn:active { background: rgba(255,255,255,0.3); }
         
         .game-message {
             position: fixed;
@@ -113,7 +98,7 @@ require_once '../../config.php';
             background: rgba(0,0,0,0.9);
             color: #fff;
             padding: 30px;
-            border-radius: 12px;
+            border-radius: 15px;
             font-size: 20px;
             text-align: center;
             z-index: 2000;
@@ -144,63 +129,57 @@ require_once '../../config.php';
     </div>
     
     <div id="game-area">
-        <canvas id="snake-canvas"></canvas>
+        <canvas id="canvas"></canvas>
     </div>
     
     <div class="direction-pad">
         <div></div>
-        <button class="dir-btn" onclick="setDir('up')">⬆️</button>
+        <button class="dir-btn" onclick="changeDir('up')">⬆️</button>
         <div></div>
-        <button class="dir-btn" onclick="setDir('left')">⬅️</button>
-        <button class="dir-btn" onclick="togglePause()">⏸️</button>
-        <button class="dir-btn" onclick="setDir('right')">➡️</button>
+        <button class="dir-btn" onclick="changeDir('left')">⬅️</button>
+        <button class="dir-btn" onclick="startGame()">▶️</button>
+        <button class="dir-btn" onclick="changeDir('right')">➡️</button>
         <div></div>
-        <button class="dir-btn" onclick="setDir('down')">⬇️</button>
+        <button class="dir-btn" onclick="changeDir('down')">⬇️</button>
         <div></div>
     </div>
     
     <div class="game-message" id="gameMessage">
         <div id="messageText"></div>
-        <button class="btn" onclick="startGame()" style="margin-top:15px;">재시작</button>
     </div>
     
     <script>
-    const canvas = document.getElementById('snake-canvas');
+    const canvas = document.getElementById('canvas');
     const ctx = canvas.getContext('2d');
-    const area = document.getElementById('game-area');
     
-    let gridSize = 20;
-    let cols = 20;
-    let rows = 20;
+    let cellSize = 20;
+    let cols = 15;
+    let rows = 15;
     let snake = [];
-    let food = {};
-    let dir = 'right';
-    let nextDir = 'right';
+    let food = {x: 0, y: 0, emoji: '🍎'};
+    let direction = 'right';
+    let nextDirection = 'right';
     let score = 0;
     let best = 0;
-    let running = false;
-    let paused = false;
-    let animId = null;
-    let speed = 100;
+    let gameRunning = false;
+    let gameLoopId = null;
     
-    const foodEmojis = ['🍎', '🍊', '🍇', '🍓', '🍒', '🥝', '🍑', '🍌'];
+    const foodTypes = ['🍎', '🍊', '🍇', '🍓', '🍒'];
     
     function init() {
         resizeCanvas();
         window.addEventListener('resize', resizeCanvas);
         
-        // 터치/키보드 방향 전환
         document.addEventListener('keydown', (e) => {
             switch(e.key) {
-                case 'ArrowUp': case 'w': case 'W': setDir('up'); break;
-                case 'ArrowDown': case 's': case 'S': setDir('down'); break;
-                case 'ArrowLeft': case 'a': case 'A': setDir('left'); break;
-                case 'ArrowRight': case 'd': case 'D': setDir('right'); break;
-                case ' ': togglePause(); break;
+                case 'ArrowUp': case 'w': case 'W': changeDir('up'); break;
+                case 'ArrowDown': case 's': case 'S': changeDir('down'); break;
+                case 'ArrowLeft': case 'a': case 'A': changeDir('left'); break;
+                case 'ArrowRight': case 'd': case 'D': changeDir('right'); break;
             }
         });
         
-        best = localStorage.getItem('snakeBest') || 0;
+        best = parseInt(localStorage.getItem('snakeBest') || '0');
         document.getElementById('best').textContent = best;
         
         if (localStorage.getItem('darkMode') === '1') {
@@ -212,98 +191,99 @@ require_once '../../config.php';
     }
     
     function resizeCanvas() {
-        const w = area.clientWidth;
-        const h = area.clientHeight - 10;
+        const container = document.getElementById('game-area');
+        const w = container.clientWidth;
+        const h = container.clientHeight;
         
-        cols = Math.floor(w / gridSize);
-        rows = Math.floor(h / gridSize);
+        canvas.width = w;
+        canvas.height = h;
         
-        canvas.width = cols * gridSize;
-        canvas.height = rows * gridSize;
+        cols = Math.floor(w / cellSize);
+        rows = Math.floor(h / cellSize);
         
-        if (!running) {
-            render();
+        if (!gameRunning) {
+            drawEmpty();
         }
     }
     
-    function setDir(newDir) {
-        if (paused) return;
+    function drawEmpty() {
+        ctx.fillStyle = '#0f0f1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        const opposites = { up: 'down', down: 'up', left: 'right', right: 'left' };
-        if (newDir !== opposites[dir]) {
-            nextDir = newDir;
-        }
-    }
-    
-    function togglePause() {
-        if (!running) {
-            startGame();
-        } else {
-            paused = !paused;
-            if (!paused) {
-                document.getElementById('gameMessage').classList.remove('show');
-                gameLoop();
-            } else {
-                document.getElementById('messageText').innerHTML = '⏸️ 일시정지';
-                document.getElementById('gameMessage').classList.add('show');
-            }
-        }
+        ctx.fillStyle = '#333';
+        ctx.font = '16px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('▶️ 버튼을 눌러 시작하세요', canvas.width/2, canvas.height/2);
     }
     
     function showStartScreen() {
-        document.getElementById('messageText').innerHTML = '🐍 뱀먹기<br><br>화면을 터치하거나<br>방향 버튼을 누르세요!';
+        drawEmpty();
+        document.getElementById('messageText').innerHTML = '🐍 뱀먹기<br><br>▶️ 시작 버튼을 눌러주세요!';
         document.getElementById('gameMessage').classList.add('show');
-        render();
+    }
+    
+    function changeDir(dir) {
+        if (!gameRunning) return;
+        
+        const opposites = {up:'down', down:'up', left:'right', right:'left'};
+        if (dir !== opposites[direction]) {
+            nextDirection = dir;
+        }
     }
     
     function startGame() {
-        running = true;
-        paused = false;
+        // 게임Running 중이면 리턴
+        if (gameRunning) return;
+        
+        gameRunning = true;
         score = 0;
-        dir = 'right';
-        nextDir = 'right';
-        speed = Math.max(60, 100 - Math.floor(score / 5) * 5);
-        
-        // 뱀 초기화 (가운데)
-        snake = [];
-        const startX = Math.floor(cols / 2);
-        const startY = Math.floor(rows / 2);
-        for (let i = 2; i >= 0; i--) {
-            snake.push({ x: startX - i, y: startY });
-        }
-        
-        spawnFood();
+        direction = 'right';
+        nextDirection = 'right';
         
         document.getElementById('score').textContent = score;
         document.getElementById('gameMessage').classList.remove('show');
         
-        if (animId) cancelAnimationFrame(animId);
+        // 뱀 초기화 (중앙)
+        snake = [];
+        const startX = Math.floor(cols/2);
+        const startY = Math.floor(rows/2);
+        for (let i = 0; i < 4; i++) {
+            snake.push({x: startX - i, y: startY});
+        }
+        
+        spawnFood();
+        draw();
         gameLoop();
     }
     
     function spawnFood() {
+        food.emoji = foodTypes[Math.floor(Math.random() * foodTypes.length)];
+        
         let valid = false;
         while (!valid) {
-            food = {
-                x: Math.floor(Math.random() * cols),
-                y: Math.floor(Math.random() * rows),
-                emoji: foodEmojis[Math.floor(Math.random() * foodEmojis.length)]
-            };
+            food.x = Math.floor(Math.random() * cols);
+            food.y = Math.floor(Math.random() * rows);
             
-            // 뱀 몸통에 겹치지 않게
-            valid = !snake.some(s => s.x === food.x && s.y === food.y);
+            valid = true;
+            for (let s of snake) {
+                if (s.x === food.x && s.y === food.y) {
+                    valid = false;
+                    break;
+                }
+            }
         }
     }
     
     function gameLoop() {
-        if (!running || paused) return;
+        if (!gameRunning) return;
         
-        dir = nextDir;
+        direction = nextDirection;
         
-        // 이동
-        const head = { x: snake[0].x, y: snake[0].y };
+        // 새 머리 계산
+        const head = {x: snake[0].x, y: snake[0].y};
         
-        switch(dir) {
+        switch(direction) {
             case 'up': head.y--; break;
             case 'down': head.y++; break;
             case 'left': head.x--; break;
@@ -317,9 +297,11 @@ require_once '../../config.php';
         }
         
         // 자기 충돌
-        if (snake.some(s => s.x === head.x && s.y === head.y)) {
-            gameOver();
-            return;
+        for (let s of snake) {
+            if (s.x === head.x && s.y === head.y) {
+                gameOver();
+                return;
+            }
         }
         
         snake.unshift(head);
@@ -328,107 +310,50 @@ require_once '../../config.php';
         if (head.x === food.x && head.y === food.y) {
             score += 10;
             document.getElementById('score').textContent = score;
-            
-            // 속도 증가
-            speed = Math.max(60, 100 - Math.floor(score / 10) * 3);
-            
             spawnFood();
-            
-            if (navigator.vibrate) navigator.vibrate(20);
+            if (navigator.vibrate) navigator.vibrate(15);
         } else {
             snake.pop();
         }
         
-        render();
+        draw();
         
-        setTimeout(() => {
-            animId = requestAnimationFrame(gameLoop);
-        }, speed);
+        // 속도 (점수 따라 빨라짐)
+        const speed = Math.max(80, 150 - score);
+        gameLoopId = setTimeout(gameLoop, speed);
     }
     
-    function render() {
-        const w = canvas.width;
-        const h = canvas.height;
-        
+    function draw() {
         // 배경
-        ctx.fillStyle = '#0a0a15';
-        ctx.fillRect(0, 0, w, h);
-        
-        // 그리드 (얕게)
-        ctx.strokeStyle = 'rgba(255,255,255,0.02)';
-        ctx.lineWidth = 1;
-        for (let x = 0; x <= cols; x++) {
-            ctx.beginPath();
-            ctx.moveTo(x * gridSize, 0);
-            ctx.lineTo(x * gridSize, h);
-            ctx.stroke();
-        }
-        for (let y = 0; y <= rows; y++) {
-            ctx.beginPath();
-            ctx.moveTo(0, y * gridSize);
-            ctx.lineTo(w, y * gridSize);
-            ctx.stroke();
-        }
+        ctx.fillStyle = '#0f0f1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // 음식
-        ctx.font = `${gridSize * 0.8}px Arial`;
+        ctx.font = (cellSize - 4) + 'px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText(food.emoji, food.x * gridSize + gridSize/2, food.y * gridSize + gridSize/2);
+        ctx.fillText(food.emoji, food.x * cellSize + cellSize/2, food.y * cellSize + cellSize/2);
         
         // 뱀
-        snake.forEach((segment, i) => {
-            if (i === 0) {
-                // 머리
-                ctx.fillStyle = '#4ade80';
-            } else {
-                // 몸통 (그라데이션)
-                const alpha = 1 - (i / snake.length) * 0.5;
-                ctx.fillStyle = `rgba(74, 222, 128, ${alpha})`;
-            }
+        snake.forEach((s, i) => {
+            // 색상 (머리는 밝게, 꼬리는 어둡게)
+            const green = i === 0 ? 220 : 180 - i * 5;
+            ctx.fillStyle = `rgb(50, ${green}, 80)`;
+            
+            // 둥근 사각형
+            const x = s.x * cellSize + 1;
+            const y = s.y * cellSize + 1;
+            const size = cellSize - 2;
             
             ctx.beginPath();
-            ctx.roundRect(
-                segment.x * gridSize + 1,
-                segment.y * gridSize + 1,
-                gridSize - 2,
-                gridSize - 2,
-                4
-            );
+            ctx.roundRect(x, y, size, size, 4);
             ctx.fill();
-            
-            // 눈 (머리에만)
-            if (i === 0) {
-                ctx.fillStyle = '#fff';
-                const eyeSize = 3;
-                const cx = segment.x * gridSize + gridSize/2;
-                const cy = segment.y * gridSize + gridSize/2;
-                
-                switch(dir) {
-                    case 'right':
-                        ctx.fillRect(cx + 2, cy - 4, eyeSize, eyeSize);
-                        ctx.fillRect(cx + 2, cy + 2, eyeSize, eyeSize);
-                        break;
-                    case 'left':
-                        ctx.fillRect(cx - 5, cy - 4, eyeSize, eyeSize);
-                        ctx.fillRect(cx - 5, cy + 2, eyeSize, eyeSize);
-                        break;
-                    case 'up':
-                        ctx.fillRect(cx - 4, cy - 5, eyeSize, eyeSize);
-                        ctx.fillRect(cx + 2, cy - 5, eyeSize, eyeSize);
-                        break;
-                    case 'down':
-                        ctx.fillRect(cx - 4, cy + 2, eyeSize, eyeSize);
-                        ctx.fillRect(cx + 2, cy + 2, eyeSize, eyeSize);
-                        break;
-                }
-            }
         });
     }
     
     function gameOver() {
-        running = false;
-        cancelAnimationFrame(animId);
+        gameRunning = false;
+        clearTimeout(gameLoopId);
         
         if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
         
@@ -438,10 +363,7 @@ require_once '../../config.php';
             document.getElementById('best').textContent = best;
         }
         
-        let msg = '💀 게임 오버!<br>점수: ' + score;
-        msg += '<br><br>최고: ' + best;
-        
-        document.getElementById('messageText').innerHTML = msg;
+        document.getElementById('messageText').innerHTML = '💀 게임 오버!<br>점수: ' + score + '<br><br>최고: ' + best + '<br><br>▶️ 다시 시작';
         document.getElementById('gameMessage').classList.add('show');
     }
     
