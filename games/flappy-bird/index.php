@@ -42,21 +42,25 @@ require_once '../../config.php';
         #game-area {
             flex: 1;
             position: relative;
-            background: linear-gradient(to bottom, #70c5ce 0%, #70c5ce 80%, #ded895 80%, #ded895 100%);
+            background: linear-gradient(to bottom, #70c5ce 0%, #70c5ce 75%, #ded895 75%, #ded895 100%);
             overflow: hidden;
             cursor: pointer;
         }
         
         #bird {
             position: absolute;
-            font-size: 35px;
+            width: 35px;
+            height: 35px;
+            line-height: 35px;
+            text-align: center;
+            font-size: 30px;
             z-index: 10;
-            transition: transform 0.1s;
+            transform-origin: center;
         }
         
         .pipe {
             position: absolute;
-            width: 50px;
+            width: 55px;
             z-index: 5;
         }
         .pipe-top {
@@ -67,20 +71,13 @@ require_once '../../config.php';
             background: linear-gradient(to right, #73bf2e 0%, #9ace5c 100%);
             border-radius: 0 0 5px 5px;
         }
-        .pipe-cap {
-            width: 60px;
-            background: #73bf2e;
-            border-radius: 5px;
-            position: absolute;
-            left: -5px;
-        }
         
         .score {
             position: absolute;
-            top: 20%;
+            top: 15%;
             left: 50%;
             transform: translateX(-50%);
-            font-size: 50px;
+            font-size: 55px;
             font-weight: bold;
             color: #fff;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
@@ -92,7 +89,7 @@ require_once '../../config.php';
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.85);
             color: #fff;
             padding: 30px;
             border-radius: 15px;
@@ -105,7 +102,7 @@ require_once '../../config.php';
         
         .cloud {
             position: absolute;
-            font-size: 40px;
+            font-size: 45px;
             opacity: 0.8;
             z-index: 1;
         }
@@ -141,15 +138,19 @@ require_once '../../config.php';
     const area = document.getElementById('game-area');
     const bird = document.getElementById('bird');
     
-    let birdY = 0, birdVY = 0;
+    let birdX = 80;
+    let birdY = 200;
+    let birdVY = 0;
     let pipes = [], clouds = [];
     let score = 0, best = 0;
     let running = false, animId = null;
-    let gravity = 0.5, jumpForce = -8;
+    let gravity = 0.4;
+    let jumpForce = -7;
+    let pipeSpeed = 3;
     let nextPipeTime = 0;
     
-    const birds = ['🐦', '🐤', '🕊️'];
-    let currentBird = 0;
+    const birdEmojis = ['🐦', '🐤', '🕊️'];
+    let currentBirdIdx = 0;
     
     function init() {
         area.addEventListener('touchstart', handleJump, { passive: false });
@@ -162,11 +163,13 @@ require_once '../../config.php';
         });
         
         // 구름 생성
-        for (let i = 0; i < 5; i++) {
-            createCloud(Math.random() * area.clientWidth, Math.random() * 60);
+        for (let i = 0; i < 4; i++) {
+            createCloud(Math.random() * area.clientWidth, Math.random() * 50);
         }
         
         showStartScreen();
+        
+        best = localStorage.getItem('flappyBest') || 0;
         
         if (localStorage.getItem('darkMode') === '1') {
             document.body.classList.add('dark-mode');
@@ -181,15 +184,19 @@ require_once '../../config.php';
             startGame();
         } else {
             birdVY = jumpForce;
-            if (navigator.vibrate) navigator.vibrate(15);
+            if (navigator.vibrate) navigator.vibrate(10);
         }
     }
     
     function showStartScreen() {
-        document.getElementById('messageText').innerHTML = '🐦 날개짓<br><br>화면을 터치하여 시작!<br><br><small>스페이스 또는 터치</small>';
-        document.getElementById('gameMessage').classList.add('show');
+        birdX = 80;
+        birdY = area.clientHeight * 0.4;
+        bird.style.left = birdX + 'px';
+        bird.style.top = birdY + 'px';
+        bird.style.transform = 'rotate(0deg)';
         
-        best = localStorage.getItem('flappyBest') || 0;
+        document.getElementById('messageText').innerHTML = '🐦 날개짓<br><br>화면을 터치하여 시작!';
+        document.getElementById('gameMessage').classList.add('show');
     }
     
     function startGame() {
@@ -197,10 +204,10 @@ require_once '../../config.php';
         score = 0;
         birdY = area.clientHeight * 0.4;
         birdVY = 0;
-        currentBird = (currentBird + 1) % birds.length;
-        bird.textContent = birds[currentBird];
+        currentBirdIdx = (currentBirdIdx + 1) % birdEmojis.length;
+        bird.textContent = birdEmojis[currentBirdIdx];
         
-        pipes.forEach(p => { p.top.remove(); p.bottom.remove(); });
+        pipes.forEach(p => { p.topEl.remove(); p.bottomEl.remove(); });
         pipes = [];
         
         document.getElementById('score').textContent = score;
@@ -213,49 +220,43 @@ require_once '../../config.php';
     }
     
     function createPipe() {
-        const gap = 140;
-        const minHeight = 80;
-        const areaH = area.clientHeight * 0.8;
-        const topHeight = minHeight + Math.random() * (areaH - gap - minHeight * 2);
+        const gap = 150;
+        const areaH = area.clientHeight * 0.75;
+        const minPipe = 60;
+        const maxPipe = areaH - gap - minPipe;
+        
+        const topHeight = minPipe + Math.random() * (maxPipe - minPipe);
         const bottomY = topHeight + gap;
         const bottomH = areaH - bottomY;
         
-        const pipeW = 50;
-        const x = area.clientWidth + 30;
+        const pipeX = area.clientWidth + 20;
+        const pipeW = 55;
         
         // 위 파이프
         const topEl = document.createElement('div');
         topEl.className = 'pipe pipe-top';
-        topEl.style.width = pipeW + 'px';
         topEl.style.height = topHeight + 'px';
-        topEl.style.left = x + 'px';
+        topEl.style.left = pipeX + 'px';
         topEl.style.top = '0';
-        
-        // 위 캡
-        const topCap = document.createElement('div');
-        topCap.className = 'pipe-cap';
-        topCap.style.top = (topHeight - 25) + 'px';
-        topEl.appendChild(topCap);
-        
         area.appendChild(topEl);
         
         // 아래 파이프
         const bottomEl = document.createElement('div');
         bottomEl.className = 'pipe pipe-bottom';
-        bottomEl.style.width = pipeW + 'px';
         bottomEl.style.height = bottomH + 'px';
-        bottomEl.style.left = x + 'px';
+        bottomEl.style.left = pipeX + 'px';
         bottomEl.style.top = bottomY + 'px';
-        
-        // 아래 캡
-        const bottomCap = document.createElement('div');
-        bottomCap.className = 'pipe-cap';
-        bottomCap.style.bottom = (bottomH - 25) + 'px';
-        bottomEl.appendChild(bottomCap);
-        
         area.appendChild(bottomEl);
         
-        pipes.push({ top: topEl, bottom: bottomEl, x: x, passed: false });
+        pipes.push({ 
+            x: pipeX, 
+            width: pipeW,
+            topHeight: topHeight,
+            bottomY: bottomY,
+            topEl: topEl,
+            bottomEl: bottomEl,
+            passed: false 
+        });
     }
     
     function createCloud(x, y) {
@@ -266,7 +267,7 @@ require_once '../../config.php';
         el.style.top = y + '%';
         area.appendChild(el);
         
-        clouds.push({ el, x: x, speed: 0.5 + Math.random() * 0.5 });
+        clouds.push({ el: el, x: x, speed: 0.3 + Math.random() * 0.3 });
     }
     
     function update() {
@@ -274,19 +275,20 @@ require_once '../../config.php';
         
         const w = area.clientWidth;
         const h = area.clientHeight;
-        const groundY = h * 0.8;
+        const groundY = h * 0.75;
+        const birdSize = 30;
         
-        // 새 위치
+        // 새 이동
         birdVY += gravity;
         birdY += birdVY;
         
-        // 회전
-        const rotation = Math.min(Math.max(birdVY * 3, -30), 90);
+        // 새 회전
+        const rotation = Math.min(Math.max(birdVY * 2.5, -25), 90);
         bird.style.transform = `rotate(${rotation}deg)`;
         bird.style.top = birdY + 'px';
         
-        // 충돌 - 바닥/천장
-        if (birdY < 0 || birdY > groundY - 30) {
+        // 바닥/천장 충돌
+        if (birdY < 0 || birdY + birdSize > groundY) {
             gameOver();
             return;
         }
@@ -295,7 +297,7 @@ require_once '../../config.php';
         const now = Date.now();
         if (now > nextPipeTime) {
             createPipe();
-            nextPipeTime = now + 2000 - Math.min(score * 10, 800);
+            nextPipeTime = now + 1800 - Math.min(score * 15, 700);
         }
         
         // 구름 이동
@@ -309,47 +311,50 @@ require_once '../../config.php';
         
         // 파이프 이동 및 충돌
         pipes.forEach(p => {
-            p.x -= 3;
-            p.top.style.left = p.x + 'px';
-            p.bottom.style.left = p.x + 'px';
+            p.x -= pipeSpeed;
+            p.topEl.style.left = p.x + 'px';
+            p.bottomEl.style.left = p.x + 'px';
             
             // 점수
-            if (!p.passed && p.x < 50) {
+            if (!p.passed && p.x + p.width < birdX) {
                 p.passed = true;
                 score++;
                 document.getElementById('score').textContent = score;
-                if (navigator.vibrate) navigator.vibrate(10);
+                if (navigator.vibrate) navigator.vibrate(8);
             }
             
             // 충돌 검사
-            const birdLeft = 50;
-            const birdRight = 85;
-            const birdTop = birdY;
-            const birdBottom = birdY + 30;
+            const birdLeft = birdX + 5;
+            const birdRight = birdX + birdSize - 5;
+            const birdTop = birdY + 5;
+            const birdBottom = birdY + birdSize - 5;
             
             const pipeLeft = p.x;
-            const pipeRight = p.x + 50;
-            const topHeight = parseInt(p.top.style.height);
+            const pipeRight = p.x + p.width;
             
-            // 위 파이프 충돌
+            // 새가 파이프 범위 내에 있음
             if (birdRight > pipeLeft && birdLeft < pipeRight) {
-                if (birdTop < topHeight) gameOver();
+                // 위 파이프와 충돌
+                if (birdTop < p.topHeight) {
+                    gameOver();
+                    return;
+                }
+                // 아래 파이프와 충돌
+                if (birdBottom > p.bottomY) {
+                    gameOver();
+                    return;
+                }
             }
             
-            // 아래 파이프 충돌
-            const bottomY = topHeight + 140;
-            if (birdRight > pipeLeft && birdLeft < pipeRight) {
-                if (birdBottom > bottomY) gameOver();
-            }
-            
-            // 제거
-            if (p.x < -60) {
-                p.top.remove();
-                p.bottom.remove();
+            // 화면 밖 파이프 제거
+            if (p.x < -p.width) {
+                p.topEl.remove();
+                p.bottomEl.remove();
             }
         });
         
-        pipes = pipes.filter(p => p.x > -60);
+        // 오래된 파이프 정리
+        pipes = pipes.filter(p => p.x > -100);
         
         animId = requestAnimationFrame(update);
     }
@@ -359,7 +364,7 @@ require_once '../../config.php';
         cancelAnimationFrame(animId);
         
         bird.textContent = '💀';
-        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+        if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
         
         let msg = '💀 게임 오버!<br>점수: ' + score;
         if (score > best) {
@@ -372,7 +377,7 @@ require_once '../../config.php';
         setTimeout(() => {
             document.getElementById('messageText').innerHTML = msg;
             document.getElementById('gameMessage').classList.add('show');
-        }, 500);
+        }, 400);
     }
     
     init();
