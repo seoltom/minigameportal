@@ -138,6 +138,85 @@ require_once '../../config.php';
     const area = document.getElementById('game-area');
     const bird = document.getElementById('bird');
     
+    // 오디오 컨텍스트
+    let audioCtx = null;
+    
+    function initAudio() {
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+    }
+    
+    // 효과음 재생 함수
+    function playSound(type) {
+        if (!audioCtx) initAudio();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        switch(type) {
+            case 'jump':
+                // 빠직! 소리
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+                break;
+                
+            case 'score':
+                // 동전 먹은 듯한 소리
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(1200, audioCtx.currentTime + 0.05);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+                break;
+                
+            case 'hit':
+                // 부딪히는 소리
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.2);
+                break;
+                
+            case 'die':
+                // 죽는 소리
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(50, audioCtx.currentTime + 0.4);
+                gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.4);
+                break;
+                
+            case 'start':
+                // 시작 효과음
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(500, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(700, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+                break;
+        }
+    }
+    
     let birdX = 80;
     let birdY = 200;
     let birdVY = 0;
@@ -162,7 +241,6 @@ require_once '../../config.php';
             }
         });
         
-        // 구름 생성
         for (let i = 0; i < 4; i++) {
             createCloud(Math.random() * area.clientWidth, Math.random() * 50);
         }
@@ -179,11 +257,13 @@ require_once '../../config.php';
     
     function handleJump(e) {
         if (e) e.preventDefault();
+        initAudio(); // 오디오 초기화
         
         if (!running) {
             startGame();
         } else {
             birdVY = jumpForce;
+            playSound('jump');
             if (navigator.vibrate) navigator.vibrate(10);
         }
     }
@@ -195,11 +275,14 @@ require_once '../../config.php';
         bird.style.top = birdY + 'px';
         bird.style.transform = 'rotate(0deg)';
         
-        document.getElementById('messageText').innerHTML = '🐦 날개짓<br><br>화면을 터치하여 시작!';
+        document.getElementById('messageText').innerHTML = '🐦 날개짓<br><br>화면을 터치하여 시작!<br><br><small>🔊 효과음 있음</small>';
         document.getElementById('gameMessage').classList.add('show');
     }
     
     function startGame() {
+        initAudio();
+        playSound('start');
+        
         running = true;
         score = 0;
         birdY = area.clientHeight * 0.4;
@@ -223,16 +306,14 @@ require_once '../../config.php';
         const gap = 150;
         const areaH = area.clientHeight * 0.75;
         const minPipe = 60;
-        const maxPipe = areaH - gap - minPipe;
         
-        const topHeight = minPipe + Math.random() * (maxPipe - minPipe);
+        const topHeight = minPipe + Math.random() * (areaH - gap - minPipe * 2);
         const bottomY = topHeight + gap;
         const bottomH = areaH - bottomY;
         
         const pipeX = area.clientWidth + 20;
         const pipeW = 55;
         
-        // 위 파이프
         const topEl = document.createElement('div');
         topEl.className = 'pipe pipe-top';
         topEl.style.height = topHeight + 'px';
@@ -240,7 +321,6 @@ require_once '../../config.php';
         topEl.style.top = '0';
         area.appendChild(topEl);
         
-        // 아래 파이프
         const bottomEl = document.createElement('div');
         bottomEl.className = 'pipe pipe-bottom';
         bottomEl.style.height = bottomH + 'px';
@@ -249,13 +329,9 @@ require_once '../../config.php';
         area.appendChild(bottomEl);
         
         pipes.push({ 
-            x: pipeX, 
-            width: pipeW,
-            topHeight: topHeight,
-            bottomY: bottomY,
-            topEl: topEl,
-            bottomEl: bottomEl,
-            passed: false 
+            x: pipeX, width: pipeW,
+            topHeight: topHeight, bottomY: bottomY,
+            topEl: topEl, bottomEl: bottomEl, passed: false 
         });
     }
     
@@ -278,84 +354,66 @@ require_once '../../config.php';
         const groundY = h * 0.75;
         const birdSize = 30;
         
-        // 새 이동
         birdVY += gravity;
         birdY += birdVY;
         
-        // 새 회전
         const rotation = Math.min(Math.max(birdVY * 2.5, -25), 90);
         bird.style.transform = `rotate(${rotation}deg)`;
         bird.style.top = birdY + 'px';
         
-        // 바닥/천장 충돌
         if (birdY < 0 || birdY + birdSize > groundY) {
+            playSound('die');
             gameOver();
             return;
         }
         
-        // 파이프 생성
         const now = Date.now();
         if (now > nextPipeTime) {
             createPipe();
             nextPipeTime = now + 1800 - Math.min(score * 15, 700);
         }
         
-        // 구름 이동
         clouds.forEach(c => {
             c.x -= c.speed;
-            if (c.x < -60) {
-                c.x = w + 60;
-            }
+            if (c.x < -60) c.x = w + 60;
             c.el.style.left = c.x + 'px';
         });
         
-        // 파이프 이동 및 충돌
         pipes.forEach(p => {
             p.x -= pipeSpeed;
             p.topEl.style.left = p.x + 'px';
             p.bottomEl.style.left = p.x + 'px';
             
-            // 점수
             if (!p.passed && p.x + p.width < birdX) {
                 p.passed = true;
                 score++;
                 document.getElementById('score').textContent = score;
+                playSound('score');
                 if (navigator.vibrate) navigator.vibrate(8);
             }
             
-            // 충돌 검사
             const birdLeft = birdX + 5;
             const birdRight = birdX + birdSize - 5;
             const birdTop = birdY + 5;
             const birdBottom = birdY + birdSize - 5;
-            
             const pipeLeft = p.x;
             const pipeRight = p.x + p.width;
             
-            // 새가 파이프 범위 내에 있음
             if (birdRight > pipeLeft && birdLeft < pipeRight) {
-                // 위 파이프와 충돌
-                if (birdTop < p.topHeight) {
-                    gameOver();
-                    return;
-                }
-                // 아래 파이프와 충돌
-                if (birdBottom > p.bottomY) {
+                if (birdTop < p.topHeight || birdBottom > p.bottomY) {
+                    playSound('hit');
                     gameOver();
                     return;
                 }
             }
             
-            // 화면 밖 파이프 제거
             if (p.x < -p.width) {
                 p.topEl.remove();
                 p.bottomEl.remove();
             }
         });
         
-        // 오래된 파이프 정리
         pipes = pipes.filter(p => p.x > -100);
-        
         animId = requestAnimationFrame(update);
     }
     
