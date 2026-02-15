@@ -14,7 +14,7 @@ $games = [
     // 퍼즐/전략 게임
     ['id' => 1, 'name' => '2048', 'category' => 'puzzle', 'icon' => '🎮', 'desc' => '숫자 합치기 퍼즐 게임', 'status' => 'completed'],
     ['id' => 2, 'name' => 'Tetris', 'category' => 'puzzle', 'icon' => '🧱', 'desc' => '고전 블록 쌓기 게임', 'status' => 'completed'],
-    ['id' => 3, 'name' => 'Sudoku', 'category' => 'puzzle', 'icon' => '🔢', 'desc' => '숫자 퍼즐 게임', 'status' => 'upcoming'],
+    ['id' => 3, 'name' => 'Sudoku', 'category' => 'puzzle', 'icon' => '🔢', 'desc' => '숫자 퍼즐 게임', 'status' => 'completed'],
     ['id' => 4, 'name' => 'Mahjong Connect', 'category' => 'puzzle', 'icon' => '🀄', 'desc' => '마작 연결 퍼즐', 'status' => 'completed'],
     ['id' => 5, 'name' => 'Bejeweled', 'category' => 'puzzle', 'icon' => '💎', 'desc' => '보석 매칭 게임', 'status' => 'completed'],
     ['id' => 6, 'name' => 'Candy Crush', 'category' => 'puzzle', 'icon' => '🍬', 'desc' => '사탕 매칭 퍼즐', 'status' => 'upcoming'],
@@ -175,6 +175,7 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
                         'Snake' => 'snake',
                         'Pong' => 'pong',
                         'Solitaire' => 'solitaire',
+                        'Sudoku' => 'sudoku',
                     ];
                     $href = isset($urlMap[$game['name']]) ? 'games/' . $urlMap[$game['name']] . '/' : '#';
                 ?>
