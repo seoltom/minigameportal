@@ -252,7 +252,11 @@ require_once '../../config.php';
         let rotated = JSON.parse(JSON.stringify(board));
         
         // 회전해서 같은 로직 적용
-        for (let k = 0; k < ({left:0, up:0, right:2, down:1}[direction] || 0); k++) {
+        // left: 0, down: 1 (90°), right: 2 (180°), up: 3 (270°)
+        const rotations = {left:0, down:1, right:2, up:3};
+        const rot = rotations[direction] || 0;
+        
+        for (let k = 0; k < rot; k++) {
             rotated = rotated[0].map((_, i) => rotated.map(r => r[i]).reverse());
         }
         
@@ -261,8 +265,8 @@ require_once '../../config.php';
         }
         
         // 원래 방향으로 회전 복구
-        let rotBack = ({left:0, up:0, right:2, down:1}[direction] || 0);
-        for (let k = 0; k < (4 - rotBack % 4); k++) {
+        const rotBack = (4 - rot) % 4;
+        for (let k = 0; k < rotBack; k++) {
             rotated = rotated[0].map((_, i) => rotated.map(r => r[i]).reverse());
         }
         board = rotated;
@@ -274,7 +278,27 @@ require_once '../../config.php';
                 best = score;
                 localStorage.setItem('2048-best', best);
             }
+            checkGameOver();
         }
+    }
+    
+    function checkGameOver() {
+        // 모든 칸이 채워졌는지 확인
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+                if (board[i][j] === 0) return;
+            }
+        }
+        // 인접한 같은 숫자 있는지 확인
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+                if (i < 3 && board[i][j] === board[i+1][j]) return;
+                if (j < 3 && board[i][j] === board[i][j+1]) return;
+            }
+        }
+        // 게임 오버
+        document.getElementById('gameMessage').textContent = '💥 게임 오버!\n점수: ' + score;
+        document.getElementById('gameMessage').classList.add('show');
     }
     
     // 터치 이벤트
