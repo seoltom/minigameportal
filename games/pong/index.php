@@ -68,21 +68,22 @@ require_once '../../config.php';
         
         .paddle-btn {
             position: absolute;
-            width: 50px;
-            height: 50px;
-            background: rgba(255,255,255,0.1);
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.15);
             border: 2px solid rgba(255,255,255,0.3);
             border-radius: 50%;
             color: #fff;
-            font-size: 20px;
+            font-size: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10;
+            touch-action: manipulation;
         }
-        .paddle-btn:active { background: rgba(255,255,255,0.2); }
-        #btn-up { top: 20px; left: 50%; transform: translateX(-50%); }
-        #btn-down { bottom: 20px; left: 50%; transform: translateX(-50%); }
+        .paddle-btn:active { background: rgba(255,255,255,0.3); }
+        #btn-left { bottom: 30px; left: calc(50% - 80px); }
+        #btn-right { bottom: 30px; left: calc(50% + 20px); }
         
         .game-message {
             position: fixed;
@@ -132,8 +133,8 @@ require_once '../../config.php';
         <canvas id="canvas"></canvas>
     </div>
     
-    <button class="paddle-btn" id="btn-up">⬆️</button>
-    <button class="paddle-btn" id="btn-down">⬇️</button>
+    <button class="paddle-btn" id="btn-left">⬅️</button>
+    <button class="paddle-btn" id="btn-right">➡️</button>
     
     <div class="game-message" id="gameMessage">
         <div id="messageText"></div>
@@ -172,15 +173,15 @@ require_once '../../config.php';
         area.addEventListener('mouseup', () => { playerMovingUp = false; playerMovingDown = false; });
         
         // 버튼
-        document.getElementById('btn-up').addEventListener('touchstart', (e) => { e.preventDefault(); playerMovingUp = true; });
-        document.getElementById('btn-up').addEventListener('touchend', () => { playerMovingUp = false; });
-        document.getElementById('btn-up').addEventListener('mousedown', () => { playerMovingUp = true; });
-        document.getElementById('btn-up').addEventListener('mouseup', () => { playerMovingUp = false; });
+        document.getElementById('btn-left').addEventListener('touchstart', (e) => { e.preventDefault(); playerMovingUp = true; });
+        document.getElementById('btn-left').addEventListener('touchend', () => { playerMovingUp = false; });
+        document.getElementById('btn-left').addEventListener('mousedown', () => { playerMovingUp = true; });
+        document.getElementById('btn-left').addEventListener('mouseup', () => { playerMovingUp = false; });
         
-        document.getElementById('btn-down').addEventListener('touchstart', (e) => { e.preventDefault(); playerMovingDown = true; });
-        document.getElementById('btn-down').addEventListener('touchend', () => { playerMovingDown = false; });
-        document.getElementById('btn-down').addEventListener('mousedown', () => { playerMovingDown = true; });
-        document.getElementById('btn-down').addEventListener('mouseup', () => { playerMovingDown = false; });
+        document.getElementById('btn-right').addEventListener('touchstart', (e) => { e.preventDefault(); playerMovingDown = true; });
+        document.getElementById('btn-right').addEventListener('touchend', () => { playerMovingDown = false; });
+        document.getElementById('btn-right').addEventListener('mousedown', () => { playerMovingDown = true; });
+        document.getElementById('btn-right').addEventListener('mouseup', () => { playerMovingDown = false; });
         
         // 키보드
         document.addEventListener('keydown', (e) => {
