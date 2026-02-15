@@ -59,7 +59,7 @@ require_once '../../config.php';
         #game-area {
             flex: 1;
             position: relative;
-            background: #0f0f1a;
+            background: #1a1a2e;
             overflow: hidden;
         }
         
@@ -207,10 +207,10 @@ require_once '../../config.php';
     }
     
     function drawEmpty() {
-        ctx.fillStyle = '#0f0f1a';
+        ctx.fillStyle = '#2a2a40';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
-        ctx.fillStyle = '#333';
+        ctx.fillStyle = '#666';
         ctx.font = '16px Arial';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -325,7 +325,7 @@ require_once '../../config.php';
     
     function draw() {
         // 배경
-        ctx.fillStyle = '#0f0f1a';
+        ctx.fillStyle = '#2a2a40';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         // 음식
@@ -337,8 +337,8 @@ require_once '../../config.php';
         // 뱀
         snake.forEach((s, i) => {
             // 색상 (머리는 밝게, 꼬리는 어둡게)
-            const green = i === 0 ? 220 : 180 - i * 5;
-            ctx.fillStyle = `rgb(50, ${green}, 80)`;
+            const green = i === 0 ? 255 : 200 - i * 8;
+            ctx.fillStyle = `rgb(0, ${green}, 100)`;
             
             // 둥근 사각형
             const x = s.x * cellSize + 1;
