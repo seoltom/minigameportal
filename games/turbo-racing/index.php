@@ -87,7 +87,7 @@ require_once '../../config.php';
         
         #player {
             position: absolute;
-            bottom: 80px;
+            bottom: 10px;
             width: 40px;
             height: 70px;
             font-size: 40px;
@@ -335,8 +335,8 @@ require_once '../../config.php';
         // 플레이어 위치
         const pLeft = w * playerX / 100 - 20;
         const pRight = w * playerX / 100 + 20;
-        const pTop = h - 150;
-        const pBottom = h - 80;
+        const pTop = h - 80;
+        const pBottom = h - 10;
         
         // 장애물 이동
         let newObstacles = [];
