@@ -75,24 +75,14 @@ require_once '../../config.php';
             border-right: 5px solid #fff;
         }
         
-        #center-line {
+        #road-line {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
             width: 10px;
-            height: 100%;
-            background: repeating-linear-gradient(
-                to bottom,
-                #fff 0px,
-                #fff 40px,
-                transparent 40px,
-                transparent 80px
-            );
-            animation: roadMove 0.5s linear infinite;
-        }
-        @keyframes roadMove {
-            from { background-position: 0 0; }
-            to { background-position: 0 80px; }
+            height: 200%;
+            background: repeating-linear-gradient(to bottom, #fff 0px, #fff 40px, transparent 40px, transparent 80px);
+            top: 0;
         }
         
         #player {
@@ -104,7 +94,6 @@ require_once '../../config.php';
             text-align: center;
             line-height: 70px;
             z-index: 10;
-            transition: left 0.1s;
         }
         
         .obstacle {
@@ -117,18 +106,8 @@ require_once '../../config.php';
         
         .coin {
             position: absolute;
-            width: 30px;
-            height: 30px;
-            font-size: 25px;
+            font-size: 28px;
             z-index: 4;
-        }
-        
-        .road-mark {
-            position: absolute;
-            width: 20px;
-            height: 4px;
-            background: #fff;
-            z-index: 3;
         }
         
         .controls {
@@ -149,7 +128,7 @@ require_once '../../config.php';
         }
         .btn:active { transform: scale(0.95); }
         
-        .game-message {
+        .msg {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -163,7 +142,7 @@ require_once '../../config.php';
             z-index: 2000;
             display: none;
         }
-        .game-message.show { display: block; }
+        .msg.show { display: block; }
         
         body.dark-mode { background: #1a1a2e !important; }
         body.dark-mode header { background: #1a1a2e; }
@@ -190,100 +169,92 @@ require_once '../../config.php';
     
     <div id="game-area">
         <div id="road">
-            <div id="center-line"></div>
+            <div id="road-line"></div>
         </div>
         <div id="player">🏎️</div>
     </div>
     
     <div class="controls">
-        <button class="btn" onclick="moveLeft()">⬅️ 왼쪽</button>
-        <button class="btn" onclick="moveRight()">➡️ 오른쪽</button>
+        <button class="btn" onclick="moveLeft()">⬅️</button>
+        <button class="btn" onclick="moveRight()">➡️</button>
         <button class="btn" onclick="togglePause()">⏸️</button>
     </div>
     
-    <div class="game-message" id="gameMessage">
-        <div id="messageText"></div>
+    <div class="msg" id="msg">
+        <div id="msgText"></div>
         <button class="btn" onclick="startGame()" style="margin-top:15px;">재시작</button>
     </div>
     
     <script>
-    const gameArea = document.getElementById('game-area');
+    const area = document.getElementById('game-area');
     const player = document.getElementById('player');
-    const road = document.getElementById('road');
+    const roadLine = document.getElementById('road-line');
     
-    let playerX = 50; // %
-    let obstacles = [], coins = [], roadMarks = [];
+    let playerX = 50;
+    let obstacles = [];
+    let coinList = [];
     let score = 0, coinCount = 0;
-    let gameSpeed = 5;
+    let speed = 6;
     let running = false;
     let animId = null;
-    let isPaused = false;
+    let paused = false;
     let level = 1;
     
     function init() {
-        // 터치/키보드
         document.addEventListener('keydown', handleKey);
         document.addEventListener('keyup', handleKeyUp);
         
-        // 터치 슬라이드
-        let startX = 0;
-        gameArea.addEventListener('touchstart', (e) => {
-            startX = e.touches[0].clientX;
-        });
-        gameArea.addEventListener('touchmove', (e) => {
-            const diff = e.touches[0].clientX - startX;
-            if (Math.abs(diff) > 10) {
-                if (diff > 0) moveRight();
-                else moveLeft();
-                startX = e.touches[0].clientX;
-            }
-        });
+        // 터치
+        area.addEventListener('touchstart', handleTouch, { passive: false });
+        area.addEventListener('touchmove', handleTouch, { passive: false });
         
         if (localStorage.getItem('darkMode') === '1') {
             document.body.classList.add('dark-mode');
         }
         
-        showStartScreen();
+        showStart();
     }
     
-    function showStartScreen() {
-        document.getElementById('messageText').innerHTML = '🏎️ 터보 레이싱<br><br>화면을 터치하거나<br>버튼으로 이동하세요!';
-        document.getElementById('gameMessage').classList.add('show');
+    function showStart() {
+        document.getElementById('msgText').innerHTML = '🏎️ 터보 레이싱<br><br>좌우로 이동하세요!';
+        document.getElementById('msg').classList.add('show');
     }
     
     function startGame() {
         running = true;
+        paused = false;
         score = 0;
         coinCount = 0;
-        gameSpeed = 5;
         level = 1;
+        speed = 6;
         playerX = 50;
+        
+        // 기존 제거
+        document.querySelectorAll('.obstacle').forEach(el => el.remove());
+        document.querySelectorAll('.coin').forEach(el => el.remove());
         obstacles = [];
-        coins = [];
+        coinList = [];
         
         document.getElementById('score').textContent = score;
         document.getElementById('coins').textContent = coinCount;
         document.getElementById('level').textContent = level;
-        document.getElementById('gameMessage').classList.remove('show');
+        document.getElementById('msg').classList.remove('show');
         
-        player.style.left = '50%';
-        
-        // 도로 마크 생성
-        createRoadMarks();
+        player.style.left = playerX + '%';
         
         if (animId) cancelAnimationFrame(animId);
         gameLoop();
     }
     
     function moveLeft() {
-        if (!running || isPaused) return;
-        playerX = Math.max(20, playerX - 8);
+        if (!running || paused) return;
+        playerX = Math.max(20, playerX - 10);
         player.style.left = playerX + '%';
     }
     
     function moveRight() {
-        if (!running || isPaused) return;
-        playerX = Math.min(80, playerX + 8);
+        if (!running || paused) return;
+        playerX = Math.min(80, playerX + 10);
         player.style.left = playerX + '%';
     }
     
@@ -299,18 +270,16 @@ require_once '../../config.php';
         if (e.key === 'ArrowRight' || e.key === 'd') keyRight = false;
     }
     
-    function createRoadMarks() {
-        document.querySelectorAll('.road-mark').forEach(el => el.remove());
-        roadMarks = [];
+    function handleTouch(e) {
+        e.preventDefault();
+        if (!running || paused) return;
         
-        for (let i = 0; i < 10; i++) {
-            const mark = document.createElement('div');
-            mark.className = 'road-mark';
-            mark.style.top = (i * 80) + 'px';
-            mark.style.left = '35%';
-            gameArea.appendChild(mark);
-            roadMarks.push(mark);
-        }
+        const rect = area.getBoundingClientRect();
+        const x = e.touches[0].clientX - rect.left;
+        const mid = rect.width / 2;
+        
+        if (x < mid - 30) moveLeft();
+        else if (x > mid + 30) moveRight();
     }
     
     function spawnObstacle() {
@@ -322,9 +291,9 @@ require_once '../../config.php';
         el.textContent = type;
         el.style.top = '-80px';
         el.style.left = (25 + Math.random() * 50) + '%';
-        gameArea.appendChild(el);
+        area.appendChild(el);
         
-        obstacles.push({ el, x: parseFloat(el.style.left), y: -80 });
+        obstacles.push({ el: el, x: parseFloat(el.style.left), y: -80 });
     }
     
     function spawnCoin() {
@@ -333,112 +302,97 @@ require_once '../../config.php';
         el.textContent = '🪙';
         el.style.top = '-40px';
         el.style.left = (25 + Math.random() * 50) + '%';
-        gameArea.appendChild(el);
+        area.appendChild(el);
         
-        coins.push({ el, x: parseFloat(el.style.left), y: -40 });
+        coinList.push({ el: el, x: parseFloat(el.style.left), y: -40 });
     }
     
     function gameLoop() {
-        if (!running || isPaused) return;
+        if (!running || paused) return;
         
-        const h = gameArea.clientHeight;
-        const w = gameArea.clientWidth;
-        const roadLeft = w * 0.25;
-        const roadWidth = w * 0.5;
+        const w = area.clientWidth;
+        const h = area.clientHeight;
         
-        // 키보드 입력
+        // 키보드
         if (keyLeft) moveLeft();
         if (keyRight) moveRight();
         
-        // 도로 마크 이동
-        roadMarks.forEach(mark => {
-            let y = parseFloat(mark.style.top);
-            y += gameSpeed * 1.5;
-            if (y > h) y = -20;
-            mark.style.top = y + 'px';
-        });
+        // 도로 라인 애니메이션
+        roadLine.style.top = (speed * 2) + '%';
+        setTimeout(() => { roadLine.style.top = '0'; }, 50);
         
         // 장애물 생성
-        if (Math.random() < 0.02 + level * 0.005) {
+        if (Math.random() < 0.015 + level * 0.003) {
             spawnObstacle();
         }
         
         // 코인 생성
-        if (Math.random() < 0.03) {
+        if (Math.random() < 0.02) {
             spawnCoin();
         }
         
-        // 장애물 이동 및 충돌
-        obstacles.forEach((obs, idx) => {
-            obs.y += gameSpeed;
+        // 플레이어 위치
+        const pLeft = w * playerX / 100 - 20;
+        const pRight = w * playerX / 100 + 20;
+        const pTop = h - 150;
+        const pBottom = h - 80;
+        
+        // 장애물 이동
+        let newObstacles = [];
+        obstacles.forEach(obs => {
+            obs.y += speed;
             obs.el.style.top = obs.y + 'px';
             
-            // 충돌 검사
-            const playerRect = {
-                left: w * playerX / 100 - 20,
-                right: w * playerX / 100 + 20,
-                top: h - 150,
-                bottom: h - 80
-            };
-            const obsLeft = roadLeft + obs.x / 100 * roadWidth - 20;
-            const obsRight = roadLeft + obs.x / 100 * roadWidth + 20;
+            // 충돌
+            const obsLeft = w * obs.x / 100 - 20;
+            const obsRight = w * obs.x / 100 + 20;
             
-            if (playerRect.right > obsLeft && playerRect.left < obsRight &&
-                playerRect.bottom > obs.y && playerRect.top < obs.y + 70) {
+            if (pRight > obsLeft && pLeft < obsRight && pBottom > obs.y && pTop < obs.y + 70) {
                 gameOver();
                 return;
             }
             
-            // 화면 밖
-            if (obs.y > h) {
+            // 화면에 있으면 유지
+            if (obs.y < h + 50) {
+                newObstacles.push(obs);
+            } else {
                 obs.el.remove();
-                obstacles.splice(idx, 1);
             }
         });
+        obstacles = newObstacles;
         
-        // 코인 수집
-        coins.forEach((coin, idx) => {
-            coin.y += gameSpeed;
-            coin.el.style.top = coin.y + 'px';
+        // 코인 이동
+        let newCoins = [];
+        coinList.forEach(c => {
+            c.y += speed;
+            c.el.style.top = c.y + 'px';
             
-            const playerRect = {
-                left: w * playerX / 100 - 15,
-                right: w * playerX / 100 + 15,
-                top: h - 150,
-                bottom: h - 80
-            };
-            const coinLeft = roadLeft + coin.x / 100 * roadWidth - 15;
-            const coinRight = roadLeft + coin.x / 100 * roadWidth + 15;
+            const cLeft = w * c.x / 100 - 15;
+            const cRight = w * c.x / 100 + 15;
             
-            if (playerRect.right > coinLeft && playerRect.left < coinRight &&
-                playerRect.bottom > coin.y && playerRect.top < coin.y + 30) {
+            if (pRight > cLeft && pLeft < cRight && pBottom > c.y && pTop < c.y + 30) {
                 coinCount++;
                 score += 50;
                 document.getElementById('coins').textContent = coinCount;
                 document.getElementById('score').textContent = score;
-                
-                coin.el.remove();
-                coins.splice(idx, 1);
-                
+                c.el.remove();
                 if (navigator.vibrate) navigator.vibrate(10);
-            }
-            
-            if (coin.y > h) {
-                coin.el.remove();
-                coins.splice(idx, 1);
+            } else if (c.y < h + 50) {
+                newCoins.push(c);
+            } else {
+                c.el.remove();
             }
         });
+        coinList = newCoins;
         
-        // 점수 증가
-        if (Math.random() < 0.1) {
-            score++;
-            document.getElementById('score').textContent = score;
-        }
+        // 점수
+        score++;
+        document.getElementById('score').textContent = score;
         
-        // 레벨 증가
+        // 레벨
         if (score > level * 500) {
             level++;
-            gameSpeed += 0.5;
+            speed += 0.5;
             document.getElementById('level').textContent = level;
         }
         
@@ -449,12 +403,12 @@ require_once '../../config.php';
         if (!running) {
             startGame();
         } else {
-            isPaused = !isPaused;
-            if (isPaused) {
-                document.getElementById('messageText').innerHTML = '⏸️ 일시정지';
-                document.getElementById('gameMessage').classList.add('show');
+            paused = !paused;
+            if (paused) {
+                document.getElementById('msgText').innerHTML = '⏸️ 일시정지';
+                document.getElementById('msg').classList.add('show');
             } else {
-                document.getElementById('gameMessage').classList.remove('show');
+                document.getElementById('msg').classList.remove('show');
                 gameLoop();
             }
         }
@@ -463,12 +417,10 @@ require_once '../../config.php';
     function gameOver() {
         running = false;
         cancelAnimationFrame(animId);
-        
         if (navigator.vibrate) navigator.vibrate(100);
         
-        document.getElementById('messageText').innerHTML = 
-            '💀 게임 오버!<br><br>점수: ' + score + '<br>코인: ' + coinCount + '<br>레벨: ' + level;
-        document.getElementById('gameMessage').classList.add('show');
+        document.getElementById('msgText').innerHTML = '💀 게임 오버!<br>점수: ' + score + '<br>코인: ' + coinCount;
+        document.getElementById('msg').classList.add('show');
     }
     
     init();
