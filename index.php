@@ -25,7 +25,7 @@ $games = [
     ['id' => 11, 'name' => 'Brick Breaker', 'category' => 'puzzle', 'icon' => '🧱', 'desc' => '벽돌 깨기 게임', 'status' => 'completed'],
     ['id' => 12, 'name' => 'Tic-Tac-Toe', 'category' => 'puzzle', 'icon' => '⭕', 'desc' => 'CPU와 틱택토', 'status' => 'completed'],
     // 레이싱/스포츠
-    ['id' => 13, 'name' => 'Turbo Racing', 'category' => 'racing', 'icon' => '🏎️', 'desc' => '3D 레이싱 게임', 'status' => 'upcoming'],
+    ['id' => 13, 'name' => 'Turbo Racing', 'category' => 'racing', 'icon' => '🏎️', 'desc' => '고속 레이싱 게임', 'status' => 'completed'],
     ['id' => 14, 'name' => 'Hill Climb Racing', 'category' => 'racing', 'icon' => '🏔️', 'desc' => '언덕 등반 레이싱', 'status' => 'upcoming'],
     ['id' => 15, 'name' => 'Moto X3M', 'category' => 'racing', 'icon' => '🏍️', 'desc' => '오토바이 모터크로스', 'status' => 'upcoming'],
     ['id' => 16, 'name' => 'Soccer Physics', 'category' => 'racing', 'icon' => '⚽', 'desc' => '축구 캐주얼 게임', 'status' => 'upcoming'],
@@ -174,6 +174,7 @@ $filteredGames = array_filter($games, function($game) use ($category, $search) {
                         'Tic-Tac-Toe' => 'tic-tac-toe',
                         'Mario Run' => 'mario-run',
                         'Flappy Bird' => 'flappy-bird',
+                        'Turbo Racing' => 'turbo-racing',
                         'Snake' => 'snake',
                         'Pong' => 'pong',
                         'Solitaire' => 'solitaire',

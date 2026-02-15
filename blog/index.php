@@ -59,6 +59,15 @@ require_once '../config.php';
         <div class="post-list">
             <h1 style="margin-bottom: 30px; font-size: 28px;">📝 블로그</h1>
             
+            <!-- 2026년 2월 15일 레이싱 포스트 -->
+            <div class="post-item">
+                <a href="post-20260215c.php">
+                    <h2 class="post-title">🏎️ 2026년 2월 15일 레이싱 게임 업데이트</h2>
+                    <p class="post-date">2026.02.15</p>
+                    <p class="post-excerpt">새로운 레이싱 게임 Turbo Racing이 추가되었습니다! 빠른 레이싱을 즐겨보세요...</p>
+                </a>
+            </div>
+            
             <!-- 2026년 2월 15일 후반 포스트 -->
             <div class="post-item">
                 <a href="post-20260215b.php">
