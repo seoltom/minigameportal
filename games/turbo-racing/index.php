@@ -112,21 +112,23 @@ require_once '../../config.php';
         
         .controls {
             display: flex;
-            gap: 10px;
-            padding: 10px;
+            gap: 20px;
+            padding: 15px;
             justify-content: center;
-            background: rgba(0,0,0,0.2);
+            background: rgba(0,0,0,0.3);
         }
         .btn {
-            padding: 12px 25px;
+            width: 80px;
+            height: 80px;
             border: none;
-            border-radius: 8px;
-            font-size: 14px;
+            border-radius: 50%;
+            font-size: 32px;
             cursor: pointer;
-            background: #8f7a66;
+            background: rgba(255,255,255,0.2);
             color: #fff;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
         }
-        .btn:active { transform: scale(0.95); }
+        .btn:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
         
         .msg {
             position: fixed;
@@ -177,7 +179,6 @@ require_once '../../config.php';
     <div class="controls">
         <button class="btn" onclick="moveLeft()">⬅️</button>
         <button class="btn" onclick="moveRight()">➡️</button>
-        <button class="btn" onclick="togglePause()">⏸️</button>
     </div>
     
     <div class="msg" id="msg">
