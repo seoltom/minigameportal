@@ -18,7 +18,7 @@ require_once '../../config.php';
             flex-direction: column;
             touch-action: manipulation;
             user-select: none;
-            font-family: inherit;
+            font-family: system-ui, sans-serif;
         }
         header { 
             background: #fff; 
@@ -27,12 +27,12 @@ require_once '../../config.php';
             top: 0; 
             z-index: 100; 
             flex-shrink: 0;
+            padding: 8px 12px;
         }
         .header-content { 
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
-            padding: 8px 12px; 
             max-width: 1200px; 
             margin: 0 auto; 
         }
@@ -40,7 +40,7 @@ require_once '../../config.php';
         nav { display: flex; gap: 10px; }
         nav a { font-size: 12px; color: #666; text-decoration: none; }
         
-        .game-info {
+        .info {
             display: flex;
             gap: 10px;
             padding: 8px 12px;
@@ -57,7 +57,7 @@ require_once '../../config.php';
         }
         .info-value { font-size: 16px; font-weight: bold; color: #ffd700; }
         
-        #game-container {
+        #game {
             flex: 1;
             display: flex;
             align-items: center;
@@ -65,58 +65,58 @@ require_once '../../config.php';
             padding: 10px;
         }
         
-        #game-board {
+        #board {
             display: grid;
-            gap: 3px;
-            background: rgba(0,0,0,0.3);
-            padding: 5px;
-            border-radius: 10px;
+            gap: 4px;
+            background: rgba(0,0,0,0.4);
+            padding: 8px;
+            border-radius: 12px;
         }
         
-        .candy {
-            width: 40px;
-            height: 40px;
+        .cell {
+            width: 44px;
+            height: 44px;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 24px;
+            font-size: 26px;
             cursor: pointer;
-            transition: transform 0.1s, box-shadow 0.1s;
+            transition: transform 0.1s;
+            box-shadow: inset 0 -2px 4px rgba(0,0,0,0.2);
         }
-        .candy:hover { transform: scale(1.05); }
-        .candy:active { transform: scale(0.95); }
-        .candy.selected {
+        .cell:active { transform: scale(0.9); }
+        .cell.selected { 
             transform: scale(1.1);
-            box-shadow: 0 0 10px rgba(255,255,255,0.8);
+            box-shadow: 0 0 0 3px #fff, 0 0 15px rgba(255,255,255,0.5);
+            z-index: 10;
         }
         
-        .candy-0 { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
-        .candy-1 { background: linear-gradient(135deg, #ffd93d, #f0c929); }
-        .candy-2 { background: linear-gradient(135deg, #6bcb77, #5ab868); }
-        .candy-3 { background: linear-gradient(135deg, #4d96ff, #3b7ddd); }
-        .candy-4 { background: linear-gradient(135deg, #c56cf0, #b04ae0); }
-        .candy-5 { background: linear-gradient(135deg, #ff9f43, #ee8e32); }
+        .c0 { background: linear-gradient(135deg, #ff6b6b, #ee5a5a); }
+        .c1 { background: linear-gradient(135deg, #ffd93d, #f0c929); }
+        .c2 { background: linear-gradient(135deg, #6bcb77, #5ab868); }
+        .c3 { background: linear-gradient(135deg, #4d96ff, #3b7ddd); }
+        .c4 { background: linear-gradient(135deg, #c56cf0, #b04ae0); }
+        .c5 { background: linear-gradient(135deg, #ff9f43, #ee8e32); }
         
         .controls {
             display: flex;
-            gap: 8px;
-            padding: 10px;
+            gap: 10px;
+            padding: 12px;
             justify-content: center;
             background: rgba(0,0,0,0.2);
-            flex-wrap: wrap;
         }
         .btn {
-            padding: 10px 18px;
+            padding: 10px 20px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             font-size: 14px;
             cursor: pointer;
             background: #8f7a66;
             color: #fff;
         }
         
-        .message {
+        .popup {
             position: fixed;
             top: 50%;
             left: 50%;
@@ -124,18 +124,17 @@ require_once '../../config.php';
             background: rgba(0,0,0,0.9);
             color: #fff;
             padding: 30px;
-            border-radius: 12px;
+            border-radius: 15px;
             font-size: 20px;
             text-align: center;
             z-index: 2000;
             display: none;
         }
-        .message.show { display: block; }
+        .popup.show { display: block; }
         
-        body.dark-mode { background: #1a1a2e !important; }
-        body.dark-mode header { background: #1a1a2e !important; }
-        body.dark-mode .logo { color: #fff !important; }
-        body.dark-mode nav a { color: #ccc !important; }
+        body.dark-mode header { background: #1a1a2e; }
+        body.dark-mode .logo { color: #fff; }
+        body.dark-mode nav a { color: #ccc; }
     </style>
 </head>
 <body>
@@ -149,72 +148,61 @@ require_once '../../config.php';
         </div>
     </header>
     
-    <div class="game-info">
+    <div class="info">
         <div class="info-box">점수: <span class="info-value" id="score">0</span></div>
         <div class="info-box">타겟: <span class="info-value" id="target">500</span></div>
-        <div class="info-box">레벨: <span class="info-value" id="level">1</span></div>
     </div>
     
-    <div id="game-container">
-        <div id="game-board"></div>
+    <div id="game">
+        <div id="board"></div>
     </div>
     
     <div class="controls">
         <button class="btn" onclick="initGame()">새 게임</button>
-        <button class="btn" onclick="changeLevel()">레벨</button>
     </div>
     
-    <div class="message" id="message">
-        <div id="msg-text"></div>
+    <div class="popup" id="popup">
+        <div id="msg"></div>
         <button class="btn" onclick="initGame()" style="margin-top:15px;">재시작</button>
     </div>
     
     <script>
     const CANDIES = ['🍬', '🍭', '🍫', '🍩', '🧁', '🍪'];
-    const COLORS = [0, 1, 2, 3, 4, 5];
-    
-    const LEVELS = [
-        { size: 6, target: 500 },
-        { size: 7, target: 800 },
-        { size: 8, target: 1200 },
-        { size: 8, target: 1500 },
-        { size: 8, target: 2000 }
-    ];
+    const SIZE = 7;
     
     let board = [];
-    let size = 6;
     let selected = null;
     let score = 0;
     let target = 500;
-    let levelIdx = 0;
+    let processing = false;
     
     function initGame() {
-        const level = LEVELS[levelIdx];
-        size = level.size;
-        target = level.target;
-        
         board = [];
-        for (let i = 0; i < size; i++) {
+        selected = null;
+        score = 0;
+        processing = false;
+        
+        document.getElementById('score').textContent = score;
+        document.getElementById('target').textContent = target;
+        document.getElementById('popup').classList.remove('show');
+        
+        // 보드 생성
+        for (let i = 0; i < SIZE; i++) {
             board[i] = [];
-            for (let j = 0; j < size; j++) {
+            for (let j = 0; j < SIZE; j++) {
                 board[i][j] = getCandy(i, j);
             }
         }
         
         // 초기 매칭 제거
         while (findMatches().length > 0) {
-            for (let i = 0; i < size; i++) {
-                for (let j = 0; j < size; j++) {
+            for (let i = 0; i < SIZE; i++) {
+                for (let j = 0; j < SIZE; j++) {
                     board[i][j] = getCandy(i, j);
                 }
             }
         }
         
-        score = 0;
-        selected = null;
-        
-        updateDisplay();
-        document.getElementById('message').classList.remove('show');
         render();
         
         if (localStorage.getItem('darkMode') === '1') {
@@ -233,34 +221,38 @@ require_once '../../config.php';
     }
     
     function render() {
-        const boardEl = document.getElementById('game-board');
+        const boardEl = document.getElementById('board');
         boardEl.innerHTML = '';
-        boardEl.style.gridTemplateColumns = `repeat(${size}, 40px)`;
+        boardEl.style.gridTemplateColumns = `repeat(${SIZE}, 44px)`;
         
-        for (let i = 0; i < size; i++) {
-            for (let j = 0; j < size; j++) {
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE; j++) {
                 const cell = document.createElement('div');
-                cell.className = 'candy candy-' + board[i][j];
+                cell.className = 'cell c' + board[i][j];
+                if (selected && selected.r === i && selected.c === j) {
+                    cell.classList.add('selected');
+                }
                 cell.textContent = CANDIES[board[i][j]];
-                cell.dataset.r = i;
-                cell.dataset.c = j;
-                cell.onclick = function() { clickCandy(i, j); };
+                cell.onclick = function() { clickCell(i, j); };
                 boardEl.appendChild(cell);
             }
         }
     }
     
-    function clickCandy(r, c) {
-        if (selected === null) {
+    function clickCell(r, c) {
+        if (processing) return;
+        
+        if (!selected) {
             selected = {r, c};
             render();
         } else if (selected.r === r && selected.c === c) {
             selected = null;
             render();
         } else {
+            // 인접 확인
             const dist = Math.abs(selected.r - r) + Math.abs(selected.c - c);
             if (dist === 1) {
-                swapAndMatch(selected.r, selected.c, r, c);
+                swapCells(selected.r, selected.c, r, c);
                 selected = null;
             } else {
                 selected = {r, c};
@@ -269,89 +261,107 @@ require_once '../../config.php';
         }
     }
     
-    function swapAndMatch(r1, c1, r2, c2) {
-        [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+    function swapCells(r1, c1, r2, c2) {
+        processing = true;
+        
+        // 교환
+        const temp = board[r1][c1];
+        board[r1][c1] = board[r2][c2];
+        board[r2][c2] = temp;
         render();
         
-        const matches = findMatches();
-        if (matches.length > 0) {
-            processMatches();
-        } else {
-            setTimeout(() => {
-                [board[r1][c1], board[r2][c2]] = [board[r2][c2], board[r1][c1]];
+        setTimeout(function() {
+            const matches = findMatches();
+            if (matches.length > 0) {
+                processMatches();
+            } else {
+                // 다시 교환
+                const temp2 = board[r1][c1];
+                board[r1][c1] = board[r2][c2];
+                board[r2][c2] = temp2;
+                processing = false;
                 render();
-            }, 200);
-        }
+            }
+        }, 150);
     }
     
     function findMatches() {
-        const matches = new Set();
+        const matches = [];
+        const seen = new Set();
         
-        for (let i = 0; i < size; i++) {
-            for (let j = 0; j < size - 2; j++) {
+        // 가로
+        for (let i = 0; i < SIZE; i++) {
+            for (let j = 0; j < SIZE - 2; j++) {
                 const c = board[i][j];
                 if (c === board[i][j+1] && c === board[i][j+2]) {
                     let k = j;
-                    while (k < size && board[i][k] === c) {
-                        matches.add(i + ',' + k);
+                    while (k < SIZE && board[i][k] === c) {
+                        const key = i + ',' + k;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            matches.push({r: i, c: k});
+                        }
                         k++;
                     }
                 }
             }
         }
         
-        for (let j = 0; j < size; j++) {
-            for (let i = 0; i < size - 2; i++) {
+        // 세로
+        for (let j = 0; j < SIZE; j++) {
+            for (let i = 0; i < SIZE - 2; i++) {
                 const c = board[i][j];
                 if (c === board[i+1][j] && c === board[i+2][j]) {
                     let k = i;
-                    while (k < size && board[k][j] === c) {
-                        matches.add(k + ',' + j);
+                    while (k < SIZE && board[k][j] === c) {
+                        const key = k + ',' + j;
+                        if (!seen.has(key)) {
+                            seen.add(key);
+                            matches.push({r: k, c: j});
+                        }
                         k++;
                     }
                 }
             }
         }
         
-        return Array.from(matches).map(s => {
-            const [r, c] = s.split(',').map(Number);
-            return {r, c};
-        });
+        return matches;
     }
     
     function processMatches() {
-        let matches = findMatches();
-        let combo = 0;
+        const matches = findMatches();
         
-        while (matches.length > 0) {
-            combo++;
+        if (matches.length > 0) {
+            // 점수
+            score += matches.length * 10;
+            document.getElementById('score').textContent = score;
             
-            const points = matches.length * 10 + (matches.length > 3 ? (matches.length - 3) * 20 : 0);
-            score += points;
-            updateDisplay();
+            // 제거
+            matches.forEach(function(m) {
+                board[m.r][m.c] = null;
+            });
             
-            if (navigator.vibrate && combo > 1) navigator.vibrate(20);
-            
-            matches.forEach(m => { board[m.r][m.c] = null; });
             render();
             
-            setTimeout(() => {
+            setTimeout(function() {
                 dropCandies();
-                fillBoard();
             }, 200);
+        } else {
+            processing = false;
             
-            matches = findMatches();
-        }
-        
-        if (score >= target) {
-            setTimeout(levelClear, 300);
+            // 클리어 체크
+            if (score >= target) {
+                document.getElementById('msg').innerHTML = '🎉 클리어!<br>점수: ' + score;
+                document.getElementById('popup').classList.add('show');
+            }
         }
     }
     
     function dropCandies() {
-        for (let j = 0; j < size; j++) {
-            let empty = size - 1;
-            for (let i = size - 1; i >= 0; i--) {
+        // 아래로 이동
+        for (let j = 0; j < SIZE; j++) {
+            let empty = SIZE - 1;
+            for (let i = SIZE - 1; i >= 0; i--) {
                 if (board[i][j] !== null) {
                     if (i !== empty) {
                         board[empty][j] = board[i][j];
@@ -361,42 +371,38 @@ require_once '../../config.php';
                 }
             }
         }
+        
         render();
+        
+        // 보충
+        setTimeout(function() {
+            fillBoard();
+        }, 150);
     }
     
     function fillBoard() {
-        for (let j = 0; j < size; j++) {
-            for (let i = size - 1; i >= 0; i--) {
+        let filled = false;
+        
+        for (let j = 0; j < SIZE; j++) {
+            for (let i = SIZE - 1; i >= 0; i--) {
                 if (board[i][j] === null) {
                     board[i][j] = Math.floor(Math.random() * 6);
-                    render();
+                    filled = true;
                 }
             }
         }
         
-        setTimeout(() => {
+        render();
+        
+        // 새 매칭 확인
+        setTimeout(function() {
             const matches = findMatches();
             if (matches.length > 0) {
                 processMatches();
+            } else {
+                processing = false;
             }
-        }, 200);
-    }
-    
-    function updateDisplay() {
-        document.getElementById('score').textContent = score;
-        document.getElementById('target').textContent = target;
-        document.getElementById('level').textContent = levelIdx + 1;
-    }
-    
-    function changeLevel() {
-        levelIdx = (levelIdx + 1) % LEVELS.length;
-        initGame();
-    }
-    
-    function levelClear() {
-        const msg = document.getElementById('message');
-        document.getElementById('msg-text').innerHTML = '🎉 클리어!<br>점수: ' + score;
-        msg.classList.add('show');
+        }, 150);
     }
     
     initGame();
