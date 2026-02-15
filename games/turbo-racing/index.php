@@ -60,7 +60,7 @@ require_once '../../config.php';
         #game-area {
             flex: 1;
             position: relative;
-            background: linear-gradient(to bottom, #2d5a27 0%, #4a7c42 100%);
+            background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 30%, #228B22 30%, #1a6b1a 100%);
             overflow: hidden;
         }
         
@@ -68,46 +68,116 @@ require_once '../../config.php';
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 200px;
+            bottom: 0;
+            width: 280px;
             height: 100%;
-            background: #444;
-            border-left: 5px solid #fff;
-            border-right: 5px solid #fff;
+            background: linear-gradient(to bottom, #555 0%, #444 100%);
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
         }
         
-        #road-line {
+        #road-center {
             position: absolute;
             left: 50%;
             transform: translateX(-50%);
-            width: 10px;
+            width: 12px;
             height: 200%;
-            background: repeating-linear-gradient(to bottom, #fff 0px, #fff 40px, transparent 40px, transparent 80px);
-            top: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(to bottom, #fff 0px, #fff 50px, transparent 50px, transparent 100px);
+            animation: roadMove 0.3s linear infinite;
+        }
+        @keyframes roadMove {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(100px); }
+        }
+        
+        #road-shoulder {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 200%;
+            bottom: 0;
+            background: repeating-linear-gradient(to bottom, #fff 0px, #fff 30px, transparent 30px, transparent 60px);
+            animation: shoulderMove 0.3s linear infinite;
+        }
+        @keyframes shoulderMove {
+            from { transform: translateX(-50%) translateY(0); }
+            to { transform: translateX(-50%) translateY(60px); }
+        }
+        
+        #side-deco {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .tree {
+            position: absolute;
+            font-size: 40px;
+            animation: treeMove 0.3s linear infinite;
+        }
+        @keyframes treeMove {
+            from { transform: translateY(0); }
+            to { transform: translateY(120px); }
         }
         
         #player {
             position: absolute;
-            bottom: 10px;
-            width: 40px;
-            height: 70px;
-            font-size: 40px;
+            bottom: 15px;
+            width: 50px;
+            height: 80px;
+            font-size: 45px;
             text-align: center;
-            line-height: 70px;
+            line-height: 80px;
             z-index: 10;
+            filter: drop-shadow(0 5px 10px rgba(0,0,0,0.5));
+            animation: carVibrate 0.1s linear infinite;
+        }
+        @keyframes carVibrate {
+            0%, 100% { transform: translateX(0); }
+            50% { transform: translateX(0.5px); }
         }
         
         .obstacle {
             position: absolute;
-            width: 40px;
-            height: 70px;
-            font-size: 35px;
+            width: 50px;
+            height: 80px;
+            font-size: 40px;
             z-index: 5;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3));
         }
         
         .coin {
             position: absolute;
-            font-size: 28px;
+            font-size: 32px;
             z-index: 4;
+            animation: coinSpin 0.5s linear infinite;
+        }
+        @keyframes coinSpin {
+            0%, 100% { transform: rotateY(0deg); }
+            50% { transform: rotateY(180deg); }
+        }
+        
+        #speed-lines {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            opacity: 0.3;
+        }
+        
+        .speed-line {
+            position: absolute;
+            width: 2px;
+            height: 40px;
+            background: linear-gradient(to bottom, transparent, #fff);
+            animation: speedLine 0.2s linear infinite;
+        }
+        @keyframes speedLine {
+            from { transform: translateY(-50px); opacity: 1; }
+            to { transform: translateY(100vh); opacity: 0; }
         }
         
         .controls {
@@ -115,36 +185,42 @@ require_once '../../config.php';
             gap: 20px;
             padding: 15px;
             justify-content: center;
-            background: rgba(0,0,0,0.3);
+            background: rgba(0,0,0,0.4);
         }
         .btn {
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             border: none;
             border-radius: 50%;
-            font-size: 32px;
+            font-size: 38px;
             cursor: pointer;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255,255,255,0.25);
             color: #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: all 0.1s;
         }
-        .btn:active { transform: scale(0.9); background: rgba(255,255,255,0.3); }
+        .btn:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
         
         .msg {
             position: fixed;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.92);
             color: #fff;
-            padding: 30px;
-            border-radius: 15px;
-            font-size: 20px;
+            padding: 35px;
+            border-radius: 18px;
+            font-size: 22px;
             text-align: center;
             z-index: 2000;
             display: none;
+            min-width: 280px;
         }
-        .msg.show { display: block; }
+        .msg.show { display: block; animation: popIn 0.2s ease-out; }
+        @keyframes popIn {
+            from { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
         
         body.dark-mode { background: #1a1a2e !important; }
         body.dark-mode header { background: #1a1a2e; }
@@ -167,39 +243,49 @@ require_once '../../config.php';
         <div class="info-box">점수: <span class="info-value" id="score">0</span></div>
         <div class="info-box">코인: <span class="info-value" id="coins">0</span></div>
         <div class="info-box">레벨: <span class="info-value" id="level">1</span></div>
+        <div class="info-box">속도: <span class="info-value" id="speed-val">0</span> km/h</div>
     </div>
     
     <div id="game-area">
         <div id="road">
-            <div id="road-line"></div>
+            <div id="road-center"></div>
+            <div id="road-shoulder"></div>
         </div>
+        <div id="side-deco"></div>
+        <div id="speed-lines"></div>
         <div id="player">🏎️</div>
     </div>
     
     <div class="controls">
-        <button class="btn" onclick="moveLeft()">⬅️</button>
-        <button class="btn" onclick="moveRight()">➡️</button>
+        <button class="btn" onmousedown="moveLeft()" ontouchstart="moveLeft()">⬅️</button>
+        <button class="btn" onmousedown="moveRight()" ontouchstart="moveRight()">➡️</button>
     </div>
     
     <div class="msg" id="msg">
         <div id="msgText"></div>
-        <button class="btn" onclick="startGame()" style="margin-top:15px;">재시작</button>
+        <button class="btn" onclick="startGame()" style="margin-top:20px;width:120px;height:50px;font-size:16px;">재시작</button>
     </div>
     
     <script>
     const area = document.getElementById('game-area');
     const player = document.getElementById('player');
-    const roadLine = document.getElementById('road-line');
+    const roadCenter = document.getElementById('road-center');
+    const roadShoulder = document.getElementById('road-shoulder');
+    const sideDeco = document.getElementById('side-deco');
+    const speedLines = document.getElementById('speed-lines');
     
     let playerX = 50;
     let obstacles = [];
     let coinList = [];
     let score = 0, coinCount = 0;
-    let speed = 6;
+    let speed = 8;
     let running = false;
     let animId = null;
-    let paused = false;
     let level = 1;
+    
+    // 트리 위치
+    const trees = [];
+    const treePositions = [5, 15, 25, 75, 85, 95];
     
     function init() {
         document.addEventListener('keydown', handleKey);
@@ -217,28 +303,33 @@ require_once '../../config.php';
     }
     
     function showStart() {
-        document.getElementById('msgText').innerHTML = '🏎️ 터보 레이싱<br><br>좌우로 이동하세요!';
+        document.getElementById('msgText').innerHTML = '🏎️ 터보 레이싱<br><br>🏁 빠른 레이싱을 즐겨보세요!';
         document.getElementById('msg').classList.add('show');
     }
     
     function startGame() {
         running = true;
-        paused = false;
         score = 0;
         coinCount = 0;
         level = 1;
-        speed = 6;
+        speed = 8;
         playerX = 50;
         
         // 기존 제거
         document.querySelectorAll('.obstacle').forEach(el => el.remove());
         document.querySelectorAll('.coin').forEach(el => el.remove());
+        document.querySelectorAll('.tree').forEach(el => el.remove());
         obstacles = [];
         coinList = [];
+        trees.length = 0;
+        
+        // 스피드 라인 생성
+        createSpeedLines();
         
         document.getElementById('score').textContent = score;
         document.getElementById('coins').textContent = coinCount;
         document.getElementById('level').textContent = level;
+        document.getElementById('speed-val').textContent = Math.floor(speed * 15);
         document.getElementById('msg').classList.remove('show');
         
         player.style.left = playerX + '%';
@@ -248,22 +339,22 @@ require_once '../../config.php';
     }
     
     function moveLeft() {
-        if (!running || paused) return;
-        playerX = Math.max(20, playerX - 10);
+        if (!running) return;
+        playerX = Math.max(25, playerX - 8);
         player.style.left = playerX + '%';
     }
     
     function moveRight() {
-        if (!running || paused) return;
-        playerX = Math.min(80, playerX + 10);
+        if (!running) return;
+        playerX = Math.min(75, playerX + 8);
         player.style.left = playerX + '%';
     }
     
     let keyLeft = false, keyRight = false;
     
     function handleKey(e) {
-        if (e.key === 'ArrowLeft' || e.key === 'a') keyLeft = true;
-        if (e.key === 'ArrowRight' || e.key === 'd') keyRight = true;
+        if (e.key === 'ArrowLeft' || e.key === 'a') { keyLeft = true; moveLeft(); }
+        if (e.key === 'ArrowRight' || e.key === 'd') { keyRight = true; moveRight(); }
     }
     
     function handleKeyUp(e) {
@@ -273,28 +364,53 @@ require_once '../../config.php';
     
     function handleTouch(e) {
         e.preventDefault();
-        if (!running || paused) return;
+        if (!running) return;
         
         const rect = area.getBoundingClientRect();
         const x = e.touches[0].clientX - rect.left;
         const mid = rect.width / 2;
         
-        if (x < mid - 30) moveLeft();
-        else if (x > mid + 30) moveRight();
+        if (x < mid - 40) moveLeft();
+        else if (x > mid + 40) moveRight();
+    }
+    
+    function createSpeedLines() {
+        speedLines.innerHTML = '';
+        for (let i = 0; i < 15; i++) {
+            const line = document.createElement('div');
+            line.className = 'speed-line';
+            line.style.left = Math.random() * 100 + '%';
+            line.style.animationDuration = (0.15 + Math.random() * 0.1) + 's';
+            speedLines.appendChild(line);
+        }
+    }
+    
+    function spawnTree() {
+        if (trees.length >= 8) return;
+        
+        const side = Math.random() > 0.5 ? 'left' : 'right';
+        const el = document.createElement('div');
+        el.className = 'tree';
+        el.textContent = '🌲';
+        el.style[side] = '-10px';
+        el.style.top = '-50px';
+        el.dataset.side = side;
+        area.appendChild(el);
+        trees.push(el);
     }
     
     function spawnObstacle() {
-        const types = ['🚗', '🚕', '🚙', '🛻', '🚐'];
+        const types = ['🚗', '🚕', '🚙', '🛻', '🚐', '🏎️'];
         const type = types[Math.floor(Math.random() * types.length)];
         
         const el = document.createElement('div');
         el.className = 'obstacle';
         el.textContent = type;
-        el.style.top = '-80px';
-        el.style.left = (25 + Math.random() * 50) + '%';
+        el.style.top = '-90px';
+        el.style.left = (30 + Math.random() * 40) + '%';
         area.appendChild(el);
         
-        obstacles.push({ el: el, x: parseFloat(el.style.left), y: -80 });
+        obstacles.push({ el: el, x: parseFloat(el.style.left), y: -90 });
     }
     
     function spawnCoin() {
@@ -302,41 +418,52 @@ require_once '../../config.php';
         el.className = 'coin';
         el.textContent = '🪙';
         el.style.top = '-40px';
-        el.style.left = (25 + Math.random() * 50) + '%';
+        el.style.left = (30 + Math.random() * 40) + '%';
         area.appendChild(el);
         
         coinList.push({ el: el, x: parseFloat(el.style.left), y: -40 });
     }
     
     function gameLoop() {
-        if (!running || paused) return;
+        if (!running) return;
         
         const w = area.clientWidth;
         const h = area.clientHeight;
         
-        // 키보드
-        if (keyLeft) moveLeft();
-        if (keyRight) moveRight();
+        // 애니메이션 속도 조정
+        const animDuration = Math.max(0.15, 0.35 - level * 0.02);
+        roadCenter.style.animationDuration = animDuration + 's';
+        roadShoulder.style.animationDuration = animDuration + 's';
         
-        // 도로 라인 애니메이션
-        roadLine.style.top = (speed * 2) + '%';
-        setTimeout(() => { roadLine.style.top = '0'; }, 50);
+        // 트리 생성
+        if (Math.random() < 0.1) spawnTree();
+        
+        // 트리 이동
+        trees.forEach((tree, idx) => {
+            let y = parseFloat(tree.style.top) || -50;
+            y += speed * 1.5;
+            tree.style.top = y + 'px';
+            if (y > h + 50) {
+                tree.remove();
+                trees.splice(idx, 1);
+            }
+        });
         
         // 장애물 생성
-        if (Math.random() < 0.015 + level * 0.003) {
+        if (Math.random() < 0.02 + level * 0.003) {
             spawnObstacle();
         }
         
         // 코인 생성
-        if (Math.random() < 0.02) {
+        if (Math.random() < 0.025) {
             spawnCoin();
         }
         
         // 플레이어 위치
-        const pLeft = w * playerX / 100 - 20;
-        const pRight = w * playerX / 100 + 20;
-        const pTop = h - 80;
-        const pBottom = h - 10;
+        const pLeft = w * playerX / 100 - 25;
+        const pRight = w * playerX / 100 + 25;
+        const pTop = h - 95;
+        const pBottom = h - 15;
         
         // 장애물 이동
         let newObstacles = [];
@@ -344,17 +471,15 @@ require_once '../../config.php';
             obs.y += speed;
             obs.el.style.top = obs.y + 'px';
             
-            // 충돌
-            const obsLeft = w * obs.x / 100 - 20;
-            const obsRight = w * obs.x / 100 + 20;
+            const obsLeft = w * obs.x / 100 - 25;
+            const obsRight = w * obs.x / 100 + 25;
             
-            if (pRight > obsLeft && pLeft < obsRight && pBottom > obs.y && pTop < obs.y + 70) {
+            if (pRight > obsLeft && pLeft < obsRight && pBottom > obs.y && pTop < obs.y + 80) {
                 gameOver();
                 return;
             }
             
-            // 화면에 있으면 유지
-            if (obs.y < h + 50) {
+            if (obs.y < h + 100) {
                 newObstacles.push(obs);
             } else {
                 obs.el.remove();
@@ -368,17 +493,17 @@ require_once '../../config.php';
             c.y += speed;
             c.el.style.top = c.y + 'px';
             
-            const cLeft = w * c.x / 100 - 15;
-            const cRight = w * c.x / 100 + 15;
+            const cLeft = w * c.x / 100 - 16;
+            const cRight = w * c.x / 100 + 16;
             
-            if (pRight > cLeft && pLeft < cRight && pBottom > c.y && pTop < c.y + 30) {
+            if (pRight > cLeft && pLeft < cRight && pBottom > c.y && pTop < c.y + 32) {
                 coinCount++;
                 score += 50;
                 document.getElementById('coins').textContent = coinCount;
                 document.getElementById('score').textContent = score;
                 c.el.remove();
                 if (navigator.vibrate) navigator.vibrate(10);
-            } else if (c.y < h + 50) {
+            } else if (c.y < h + 100) {
                 newCoins.push(c);
             } else {
                 c.el.remove();
@@ -389,38 +514,25 @@ require_once '../../config.php';
         // 점수
         score++;
         document.getElementById('score').textContent = score;
+        document.getElementById('speed-val').textContent = Math.floor(speed * 12);
         
         // 레벨
-        if (score > level * 500) {
+        if (score > level * 300) {
             level++;
-            speed += 0.5;
+            speed += 1;
             document.getElementById('level').textContent = level;
         }
         
         animId = requestAnimationFrame(gameLoop);
     }
     
-    function togglePause() {
-        if (!running) {
-            startGame();
-        } else {
-            paused = !paused;
-            if (paused) {
-                document.getElementById('msgText').innerHTML = '⏸️ 일시정지';
-                document.getElementById('msg').classList.add('show');
-            } else {
-                document.getElementById('msg').classList.remove('show');
-                gameLoop();
-            }
-        }
-    }
-    
     function gameOver() {
         running = false;
         cancelAnimationFrame(animId);
-        if (navigator.vibrate) navigator.vibrate(100);
+        if (navigator.vibrate) navigator.vibrate(150);
         
-        document.getElementById('msgText').innerHTML = '💀 게임 오버!<br>점수: ' + score + '<br>코인: ' + coinCount;
+        document.getElementById('msgText').innerHTML = 
+            '💥 게임 오버!<br><br>🏆 점수: ' + score + '<br>🪙 코인: ' + coinCount + '<br>📊 레벨: ' + level;
         document.getElementById('msg').classList.add('show');
     }
     
