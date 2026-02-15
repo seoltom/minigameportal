@@ -102,6 +102,9 @@ require_once '../../config.php';
     let board = [], rows = 6, cols = 8, selected = null, score = 0, pairsLeft = 0, timeLeft = 300, timer = null;
     
     function initGame() {
+        // 팝업 닫기
+        document.getElementById('gameMessage').classList.remove('show');
+        
         const level = LEVELS[document.getElementById('level').value];
         rows = level.rows;
         cols = level.cols;
